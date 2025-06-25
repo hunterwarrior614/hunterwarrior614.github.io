@@ -1,0 +1,228 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>不同方式查看CUDA版本的含义 | HunterWarrior's blog</title><meta name="author" content="HunterWarrior"><meta name="copyright" content="HunterWarrior"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="最近在给深度学习项目搭建环境时，遇到了不得不使用 CUDA 11.8 的情况，而我在通过不同方式查看自己 CUDA 版本时发现了不同版本号，产生了诸多疑惑（甚至差点卸载了 CUDA 重装）。经过一番探索以及向d老师寻求帮助后，终于理清了他们的关系，遂写下此文以帮助遇到同样问题的追光者们~（部分内容引用自DeepSeek，如有错误之处欢迎指出！）  nvcc -V 该方式显示的是当前环境下 nvcc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="不同方式查看CUDA版本的含义">
+<meta property="og:url" content="http://example.com/2025/06/26/%E4%B8%8D%E5%90%8C%E6%96%B9%E5%BC%8F%E6%9F%A5%E7%9C%8BCUDA%E7%89%88%E6%9C%AC%E7%9A%84%E5%90%AB%E4%B9%89/index.html">
+<meta property="og:site_name" content="HunterWarrior&#39;s blog">
+<meta property="og:description" content="最近在给深度学习项目搭建环境时，遇到了不得不使用 CUDA 11.8 的情况，而我在通过不同方式查看自己 CUDA 版本时发现了不同版本号，产生了诸多疑惑（甚至差点卸载了 CUDA 重装）。经过一番探索以及向d老师寻求帮助后，终于理清了他们的关系，遂写下此文以帮助遇到同样问题的追光者们~（部分内容引用自DeepSeek，如有错误之处欢迎指出！）  nvcc -V 该方式显示的是当前环境下 nvcc">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/head-picture.jpg">
+<meta property="article:published_time" content="2025-06-25T17:19:28.000Z">
+<meta property="article:modified_time" content="2025-06-25T17:47:03.920Z">
+<meta property="article:author" content="HunterWarrior">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/head-picture.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "不同方式查看CUDA版本的含义",
+  "url": "http://example.com/2025/06/26/%E4%B8%8D%E5%90%8C%E6%96%B9%E5%BC%8F%E6%9F%A5%E7%9C%8BCUDA%E7%89%88%E6%9C%AC%E7%9A%84%E5%90%AB%E4%B9%89/",
+  "image": "http://example.com/img/head-picture.jpg",
+  "datePublished": "2025-06-25T17:19:28.000Z",
+  "dateModified": "2025-06-25T17:47:03.920Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "HunterWarrior",
+      "url": "http://example.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="http://example.com/2025/06/26/%E4%B8%8D%E5%90%8C%E6%96%B9%E5%BC%8F%E6%9F%A5%E7%9C%8BCUDA%E7%89%88%E6%9C%AC%E7%9A%84%E5%90%AB%E4%B9%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '不同方式查看CUDA版本的含义',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">1</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">HunterWarrior's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">不同方式查看CUDA版本的含义</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">不同方式查看CUDA版本的含义</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-25T17:19:28.000Z" title="发表于 2025-06-26 01:19:28">2025-06-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-25T17:47:03.920Z" title="更新于 2025-06-26 01:47:03">2025-06-26</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>最近在给深度学习项目搭建环境时，遇到了不得不使用 CUDA 11.8 的情况，而我在通过不同方式查看自己 CUDA 版本时发现了不同版本号，产生了诸多疑惑（甚至差点卸载了 CUDA 重装）。经过一番探索以及向d老师寻求帮助后，终于理清了他们的关系，遂写下此文以帮助遇到同样问题的追光者们~（部分内容引用自DeepSeek，如有错误之处欢迎指出！）</p>
+<ol>
+<li><p><code>nvcc -V</code></p>
+<p>该方式显示的是<strong>当前环境下</strong> <code>nvcc</code> 对应的 CUDA 工具包（<strong>CUDA Toolkit</strong>）版本（如下面的 <code>cuda_12.0</code> 表示 CUDA Toolkit 版本为12.0）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nvcc: NVIDIA (R) Cuda compiler driver</span><br><span class="line">Copyright (c) 2005-2023 NVIDIA Corporation</span><br><span class="line">Built on Fri_Jan__6_16:45:21_PST_2023</span><br><span class="line">Cuda compilation tools, release 12.0, V12.0.140</span><br><span class="line">Build cuda_12.0.r12.0/compiler.32267302_0</span><br></pre></td></tr></table></figure>
+
+<p>对于<strong>当前环境下的CUDA Toolkit版本</strong>，有这几种情况：</p>
+<ul>
+<li>处于虚拟环境中，且该虚拟环境有 cuda-nvcc：那么输出的版本就是该环境下 CUDA Toolkit 版本；</li>
+<li>处于虚拟环境中，但是该虚拟环境中没有安装 cuda-nvcc：那么输出的是系统 CUDA Toolkit 版本；</li>
+<li>无环境（base 环境）情况下，输出的是<strong>系统</strong> CUDA Toolkit 版本。</li>
+</ul>
+<p>每种情况下，运行 <code>which nvcc</code> 输出的也是相应的 <code>nvcc</code> 的位置。</p>
+<hr>
+<p>为了深刻理解 <code>nvcc</code> 与 CUDA 的关系，在此阐述一下他们的定义。</p>
+<ul>
+<li>CUDA <strong>是什么？</strong><br>CUDA（Compute Unified Device Architecture）是 NVIDIA 推出的<strong>并行计算平台和编程模型</strong>，允许开发者直接利用 GPU 进行通用计算（如深度学习、科学计算等）。其由 <strong>CUDA 工具包（Toolkit）</strong>、CUDA 驱动和 CUDA 运行时库等组成。</li>
+<li><code>nvcc</code> <strong>是什么？</strong><br><code>nvcc</code> （NVIDIA CUDA Compiler）是 CUDA Toolkit 中的编译器，专门用于编译 CUDA 代码（<code>.cu</code> 文件）。</li>
+<li><code>nvcc</code> 与 CUDA 的<strong>关系</strong><ul>
+<li><code>nvcc</code> 是 CUDA Toolkit 的一部分。安装 CUDA Toolkit 时，会默认安装 nvcc；</li>
+<li><code>nvcc</code> 依赖 CUDA Toolkit。其行为受 CUDA Toolkit 版本的控制；</li>
+<li><code>nvcc</code> 不直接依赖显卡驱动。编译代码时只需 CUDA 工具包，但生成的程序运行时需要匹配的 NVIDIA 驱动。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><code>torch.version.cuda</code></p>
+<p>在虚拟环境中，运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># .venv1</span></span><br><span class="line">Python 3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0] on linux</span><br><span class="line">Type <span class="string">&quot;help&quot;</span>, <span class="string">&quot;copyright&quot;</span>, <span class="string">&quot;credits&quot;</span> or <span class="string">&quot;license&quot;</span> <span class="keyword">for</span> more information.</span><br><span class="line">&gt;&gt;&gt; import torch</span><br><span class="line">&gt;&gt;&gt; <span class="built_in">print</span>(torch.version.cuda)</span><br><span class="line">11.8</span><br></pre></td></tr></table></figure>
+
+<p>输出的 11.8 表示<strong>当前环境下实际使用的 CUDA 版本</strong>。<br>当我在另一个环境运行时，显示的就是另一个环境的 CUDA 版本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># .venv2</span></span><br><span class="line">Python 3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0] on linux</span><br><span class="line">Type <span class="string">&quot;help&quot;</span>, <span class="string">&quot;copyright&quot;</span>, <span class="string">&quot;credits&quot;</span> or <span class="string">&quot;license&quot;</span> <span class="keyword">for</span> more information.</span><br><span class="line">&gt;&gt;&gt; import torch</span><br><span class="line">&gt;&gt;&gt; <span class="built_in">print</span>(torch.version.cuda)</span><br><span class="line">12.4</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>由此可见，每个虚拟环境独立管理 Python 包。在一个环境中安装 PyTorch for CUDA 11.8，不会影响其他环境中已安装的 PyTorch（如 CUDA 12.4 版本）。<br>并且<strong>需要注意</strong>的是，现在的 PyTorch 的预编译包（通过 <code>pip</code> 或 <code>conda</code> 安装）会自带与 CUDA 版本对应的运行时库（如 cuDNN、cuBLAS 等），且这些库仅在该虚拟环境中生效，不会干扰系统全局或其他环境中的 CUDA。</p>
+</li>
+<li><p><code>nvidia-smi</code></p>
+<p>下图中 <code>CUDA Version: 12.4</code> 表示当前安装的 NVIDIA 驱动版本<strong>支持的最高 CUDA Toolkit 版本，并非当前版本</strong>。说明我的 NVIDIA 驱动可以支持 CUDA Toolkit <strong>12.4 及以下</strong>的版本，即向下兼容。</p>
+<p><img src="/images/505992d68efa53d7ca7295d091992482.png" alt="图片"></p>
+<p>注：<strong>PyTorch 实际依赖的是 NVIDIA 驱动</strong>。PyTorch 通过 NVIDIA 驱动与 GPU 通信。只要驱动版本足够新（如支持 CUDA 12.0 的驱动通常也兼容 CUDA 11.8），不同 CUDA 版本的 PyTorch 均可运行。</p>
+</li>
+</ol>
+<p><mark><strong>总结一下：</strong></mark></p>
+<table>
+<thead>
+<tr>
+<th align="center"><strong>命令</strong></th>
+<th align="center"><strong>显示内容</strong></th>
+<th align="center"><strong>主要用途</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>nvcc -V</code></td>
+<td align="center">系统中安装的 CUDA Toolkit 版本</td>
+<td align="center">确认编译 CUDA 代码时的工具包版本</td>
+</tr>
+<tr>
+<td align="center"><code>torch.version.cuda</code></td>
+<td align="center">当前环境中 Pytorch 实际使用的 CUDA 运行时版本</td>
+<td align="center">确认深度学习框架的 CUDA 环境</td>
+</tr>
+<tr>
+<td align="center"><code>nvidia-smi</code></td>
+<td align="center">驱动支持的最高 CUDA Toolkit 版本</td>
+<td align="center">确认驱动兼容性</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">HunterWarrior</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/06/26/%E4%B8%8D%E5%90%8C%E6%96%B9%E5%BC%8F%E6%9F%A5%E7%9C%8BCUDA%E7%89%88%E6%9C%AC%E7%9A%84%E5%90%AB%E4%B9%89/">http://example.com/2025/06/26/%E4%B8%8D%E5%90%8C%E6%96%B9%E5%BC%8F%E6%9F%A5%E7%9C%8BCUDA%E7%89%88%E6%9C%AC%E7%9A%84%E5%90%AB%E4%B9%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">HunterWarrior's blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/head-picture.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">HunterWarrior</div><div class="author-info-description">行而不辍，未来可期！</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">1</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/26/%E4%B8%8D%E5%90%8C%E6%96%B9%E5%BC%8F%E6%9F%A5%E7%9C%8BCUDA%E7%89%88%E6%9C%AC%E7%9A%84%E5%90%AB%E4%B9%89/" title="不同方式查看CUDA版本的含义">不同方式查看CUDA版本的含义</a><time datetime="2025-06-25T17:19:28.000Z" title="发表于 2025-06-26 01:19:28">2025-06-26</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By HunterWarrior</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
