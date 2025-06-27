@@ -1,1 +1,40 @@
-var now=new Date;function createtime(){now.setTime(now.getTime()+1e3);var e=new Date("08/01/2022 00:00:00"),t=Math.trunc(234e8+(now-e)/1e3*17),a=(t/1496e5).toFixed(6),o=new Date("08/09/2022 00:00:00"),n=(now-o)/1e3/60/60/24,r=Math.floor(n),i=(now-o)/1e3/60/60-24*r,s=Math.floor(i);1==String(s).length&&(s="0"+s);var d=(now-o)/1e3/60-1440*r-60*s,l=Math.floor(d);1==String(l).length&&(l="0"+l);var g=(now-o)/1e3-86400*r-3600*s-60*l,b=Math.round(g);1==String(b).length&&(b="0"+b);let c="";c=s<18&&s>=9?`<img class='boardsign' src='https://sourcebucket.s3.ladydaily.com/badge/F小屋-科研摸鱼中.svg' title='什么时候能够实现财富自由呀~'><br> <div style="font-size:13px;font-weight:bold">本站居然运行了 ${r} 天 ${s} 小时 ${l} 分 ${b} 秒 <i id="heartbeat" class='fas fa-heartbeat'></i> <br> 旅行者 1 号当前距离地球 ${t} 千米，约为 ${a} 个天文单位 🚀</div>`:`<img class='boardsign' src='https://sourcebucket.s3.ladydaily.com/badge/F小屋-下班休息啦.svg' title='下班了就该开开心心地玩耍~'><br> <div style="font-size:13px;font-weight:bold">本站居然运行了 ${r} 天 ${s} 小时 ${l} 分 ${b} 秒 <i id="heartbeat" class='fas fa-heartbeat'></i> <br> 旅行者 1 号当前距离地球 ${t} 千米，约为 ${a} 个天文单位 🚀</div>`,document.getElementById("workboard")&&(document.getElementById("workboard").innerHTML=c)}setInterval((()=>{createtime()}),1e3);
+var now = new Date();
+function createtime() {
+    now.setTime(now.getTime() + 1000);
+    
+    // 修改这里：将起始时间改为实际建站时间
+    var siteCreation = new Date("06/25/2025 21:41:45"); // 替换为您的实际建站时间
+    
+    // 计算网站运行时间
+    var totalSeconds = (now - siteCreation) / 1000;
+    var days = Math.floor(totalSeconds / 86400);
+    var hours = Math.floor((totalSeconds % 86400) / 3600);
+    var minutes = Math.floor((totalSeconds % 3600) / 60);
+    var seconds = Math.floor(totalSeconds % 60);
+    
+    // 格式化时间单位
+    hours = hours < 10 ? "0" + hours : hours;
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    seconds = seconds < 10 ? "0" + seconds : seconds;
+    
+    // 生成显示内容
+    let displayContent = "";
+    if (hours < 18 && hours >= 9) {
+        displayContent = `<div style="font-size:13px;font-weight:bold">
+                         哇！本站居然运行了 ${days} 天 ${hours} 小时 ${minutes} 分 ${seconds} 秒耶✌
+                         <i id="heartbeat" class='fas fa-heartbeat'></i></div>`;
+    } else {
+        displayContent = `<div style="font-size:13px;font-weight:bold">
+                         哇！本站居然运行了 ${days} 天 ${hours} 小时 ${minutes} 分 ${seconds} 秒耶✌ 
+                         <i id="heartbeat" class='fas fa-heartbeat'></i></div>`;
+    }
+    
+    // 更新显示
+    const workboard = document.getElementById("workboard");
+    if (workboard) {
+        workboard.innerHTML = displayContent;
+    }
+}
+
+// 每秒更新一次
+setInterval(createtime, 1000);
