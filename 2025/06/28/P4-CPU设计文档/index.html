@@ -1,0 +1,908 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>P4 CPU设计文档 | HunterWarrior's blog</title><meta name="author" content="HunterWarrior"><meta name="copyright" content="HunterWarrior"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="设计要求  处理器为 32 位单周期处理器，不考虑延迟槽，应支持的指令集为：add, sub, ori, lw, sw, beq, lui, jal, jr, nop，其中：  nop 为空指令，机器码 0x00000000，不进行任何有效行为（修改寄存器等）。  add, sub 按无符号加减法处理（不考虑溢出）。   需要采用模块化和层次化设计。顶层文件为 mips.v">
+<meta property="og:type" content="article">
+<meta property="og:title" content="P4 CPU设计文档">
+<meta property="og:url" content="https://hunterwarrior614.github.io/2025/06/28/P4-CPU%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/index.html">
+<meta property="og:site_name" content="HunterWarrior&#39;s blog">
+<meta property="og:description" content="设计要求  处理器为 32 位单周期处理器，不考虑延迟槽，应支持的指令集为：add, sub, ori, lw, sw, beq, lui, jal, jr, nop，其中：  nop 为空指令，机器码 0x00000000，不进行任何有效行为（修改寄存器等）。  add, sub 按无符号加减法处理（不考虑溢出）。   需要采用模块化和层次化设计。顶层文件为 mips.v">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://hunterwarrior614.github.io/images/xh-2.jpg">
+<meta property="article:published_time" content="2025-06-28T05:39:36.000Z">
+<meta property="article:modified_time" content="2025-06-28T06:39:49.173Z">
+<meta property="article:author" content="HunterWarrior">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hunterwarrior614.github.io/images/xh-2.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "P4 CPU设计文档",
+  "url": "https://hunterwarrior614.github.io/2025/06/28/P4-CPU%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/",
+  "image": "https://hunterwarrior614.github.io/images/xh-2.jpg",
+  "datePublished": "2025-06-28T05:39:36.000Z",
+  "dateModified": "2025-06-28T06:39:49.173Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "HunterWarrior",
+      "url": "https://hunterwarrior614.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://hunterwarrior614.github.io/2025/06/28/P4-CPU%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: HunterWarrior","link":"链接: ","source":"来源: HunterWarrior's blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'P4 CPU设计文档',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="/css/universe.css"><!-- hexo injector head_end start --><link rel="stylesheet" href="https://www.fomal.cc/static/css/runtime.min.css" media="print" onload="this.media='all'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="/pace/flash.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg" style="background-color: #F0FFFD;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/xh-2.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.ico" alt="Logo"><span class="site-name">HunterWarrior's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">P4 CPU设计文档</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">P4 CPU设计文档</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-28T05:39:36.000Z" title="发表于 2025-06-28 13:39:36">2025-06-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-28T06:39:49.173Z" title="更新于 2025-06-28 14:39:49">2025-06-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BB%84%E6%88%90/">计算机组成</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.8k</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="设计要求">设计要求</h1>
+<ul>
+<li><p>处理器为 32
+位单周期处理器，不考虑延迟槽，应支持的指令集为：<code>add, sub, ori, lw, sw, beq, lui, jal, jr, nop</code>，其中：</p>
+<ul>
+<li><p><code>nop</code> 为空指令，机器码
+<code>0x00000000</code>，不进行任何有效行为（修改寄存器等）。</p>
+<ul>
+<li><code>add, sub</code> 按无符号加减法处理（不考虑溢出）。</li>
+</ul></li>
+</ul></li>
+<li><p>需要采用<strong>模块化</strong>和<strong>层次化</strong>设计。顶层文件为
+<strong>mips.v</strong>，有效的驱动信号要求包括且仅包括<strong>同步复位信号
+reset </strong>和<strong>时钟信号 clk</strong>，接口定义如下：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span> mips(</span><br><span class="line">    <span class="built_in">input</span> clk,</span><br><span class="line">    <span class="built_in">input</span> reset</span><br><span class="line">);</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h1 id="设计草稿">设计草稿</h1>
+<h2 id="数据通路模块定义">数据通路模块定义</h2>
+<h3 id="pc">PC</h3>
+<table>
+<thead>
+<tr>
+<th>信号名</th>
+<th>方向</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NPC[31:0]</td>
+<td>I</td>
+<td>输入下一个 PC 值</td>
+</tr>
+<tr>
+<td>clk</td>
+<td>I</td>
+<td>时钟信号</td>
+</tr>
+<tr>
+<td>reset</td>
+<td>I</td>
+<td><strong>同步复位信号</strong></td>
+</tr>
+<tr>
+<td>PC[31:0]</td>
+<td>O</td>
+<td>输出当前 PC 值</td>
+</tr>
+</tbody>
+</table>
+<h3 id="npc">NPC</h3>
+<table>
+<thead>
+<tr>
+<th>信号名</th>
+<th>方向</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PC[31:0]</td>
+<td>I</td>
+<td>输入当前的 PC 值，用于计算 NPC 值</td>
+</tr>
+<tr>
+<td>offset[31:0]</td>
+<td>I</td>
+<td>偏移量</td>
+</tr>
+<tr>
+<td>nPC_sel[2:0]</td>
+<td>I</td>
+<td>NPC 输出选择信号</td>
+</tr>
+<tr>
+<td>Branch</td>
+<td>I</td>
+<td>跳转信号</td>
+</tr>
+<tr>
+<td>instr_index[25:0]</td>
+<td>I</td>
+<td>机器码 26 位 instr_index</td>
+</tr>
+<tr>
+<td>Ra[31:0]</td>
+<td>I</td>
+<td>输入$ra 寄存器的值</td>
+</tr>
+<tr>
+<td>NPC[31:0]</td>
+<td>O</td>
+<td>输出 NPC 值</td>
+</tr>
+<tr>
+<td>PC_add_4[31:0]</td>
+<td>O</td>
+<td>输出 PC+4 值</td>
+</tr>
+</tbody>
+</table>
+<p>nPC_sel 的信号功能：</p>
+<table>
+<colgroup>
+<col style="width: 6%" />
+<col style="width: 93%" />
+</colgroup>
+<thead>
+<tr>
+<th>信号</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3’b000</td>
+<td>NPC = PC + 4</td>
+</tr>
+<tr>
+<td>3’b001</td>
+<td>NPC = Branch ? PC + 4 + (offset &lt;&lt; 2) : PC + 4</td>
+</tr>
+<tr>
+<td>3’b010</td>
+<td>NPC = (PC<span class="math inline"><sub>31...28</sub></span>的 32
+位无符号扩展数 &lt;&lt; 28) + (instr_index 的 32 位无符号拓展数 &lt;&lt;
+2)</td>
+</tr>
+<tr>
+<td>3’b011</td>
+<td>NPC = Ra</td>
+</tr>
+</tbody>
+</table>
+<h3 id="im">IM</h3>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>方向</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A[31:0]</td>
+<td>I</td>
+<td>输入指令地址</td>
+</tr>
+<tr>
+<td>RD[31:0]</td>
+<td>O</td>
+<td>输出指令</td>
+</tr>
+</tbody>
+</table>
+<p>由于指令地址起始值为 0x0000_3000，对 A 减去 0x0000_3000
+后，取其[13:2]位值，记为 no，从指令存储器中取第 no 条指令输出给 RD。</p>
+<p>指令存储器容量为 4096 × 32bit。</p>
+<h3 id="grf">GRF</h3>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>方向</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A1[4:0]</td>
+<td>I</td>
+<td>输入需要读取的寄存器 Reg1 的序号</td>
+</tr>
+<tr>
+<td>A2[4:0]</td>
+<td>I</td>
+<td>输入需要读取的寄存器 Reg2 的序号</td>
+</tr>
+<tr>
+<td>A3[4:0]</td>
+<td>I</td>
+<td>输入需要写入的寄存器的序号</td>
+</tr>
+<tr>
+<td>WD3[31:0]</td>
+<td>I</td>
+<td>写入数据</td>
+</tr>
+<tr>
+<td>clk</td>
+<td>I</td>
+<td>时钟信号</td>
+</tr>
+<tr>
+<td>WE3</td>
+<td>I</td>
+<td>写使能信号</td>
+</tr>
+<tr>
+<td>reset</td>
+<td>I</td>
+<td><strong>同步复位信号</strong></td>
+</tr>
+<tr>
+<td>PC[31:0]</td>
+<td>I</td>
+<td>相应指令的储存地址</td>
+</tr>
+<tr>
+<td>RD1[31:0]</td>
+<td>O</td>
+<td>输出从寄存器 Reg1 中读取的内容</td>
+</tr>
+<tr>
+<td>RD2[31:0]</td>
+<td>O</td>
+<td>输出从寄存器 Reg2 中读取的内容</td>
+</tr>
+</tbody>
+</table>
+<p>0 号寄存器值始终为 0。</p>
+<h3 id="dm">DM</h3>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>方向</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A[31:0]</td>
+<td>I</td>
+<td>输入内存地址</td>
+</tr>
+<tr>
+<td>WD[31:0]</td>
+<td>I</td>
+<td>输入需要写入的数据</td>
+</tr>
+<tr>
+<td>clk</td>
+<td>I</td>
+<td>时钟信号</td>
+</tr>
+<tr>
+<td>reset</td>
+<td>I</td>
+<td><strong>同步复位信号</strong></td>
+</tr>
+<tr>
+<td>WE</td>
+<td>I</td>
+<td>写使能信号</td>
+</tr>
+<tr>
+<td>PC[31:0]</td>
+<td>I</td>
+<td>相应指令的储存地址</td>
+</tr>
+<tr>
+<td>RD[31:0]</td>
+<td>O</td>
+<td>输出从内存中读取的数据</td>
+</tr>
+</tbody>
+</table>
+<p>取 A[13:2]的值记为 no，表示数据存储器第 no 处位置。</p>
+<p>数据存储器容量为 3072 × 32bit。</p>
+<h3 id="alu">ALU</h3>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>方向</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SrcA[31:0]</td>
+<td>I</td>
+<td>输入计算数 A</td>
+</tr>
+<tr>
+<td>SrcB[31:0]</td>
+<td>I</td>
+<td>输入计算数 B</td>
+</tr>
+<tr>
+<td>Shift[4:0]</td>
+<td>I</td>
+<td>输入移位量 Shift</td>
+</tr>
+<tr>
+<td>Op[2:0]</td>
+<td>I</td>
+<td>操作数 Op</td>
+</tr>
+<tr>
+<td>Result[31:0]</td>
+<td>O</td>
+<td>输出运算结果</td>
+</tr>
+<tr>
+<td>Zero</td>
+<td>O</td>
+<td>Zero = (A == B);</td>
+</tr>
+</tbody>
+</table>
+<p>Op 信号功能：</p>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>类型</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3’b000</td>
+<td>ADD（无符号，不考虑溢出）</td>
+<td>SrcA + SrcB</td>
+</tr>
+<tr>
+<td>3’b001</td>
+<td>SUB（无符号，不考虑溢出）</td>
+<td>SrcA - SrcB</td>
+</tr>
+<tr>
+<td>3’b010</td>
+<td>OR</td>
+<td>SrcA | SrcB</td>
+</tr>
+<tr>
+<td>3’b011</td>
+<td>SHIFT</td>
+<td>SrcB &lt;&lt; Shift</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ext">EXT</h3>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>方向</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Imm[15:0]</td>
+<td>I</td>
+<td>输入 16 位立即数</td>
+</tr>
+<tr>
+<td>ExtOp</td>
+<td>I</td>
+<td>扩展类型</td>
+</tr>
+<tr>
+<td>Ext_Imm[31:0]</td>
+<td>O</td>
+<td>输出扩展立即数</td>
+</tr>
+</tbody>
+</table>
+<p>ExtOp 信号功能：</p>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1’b0</td>
+<td>无符号拓展</td>
+</tr>
+<tr>
+<td>1’b1</td>
+<td>符号拓展</td>
+</tr>
+</tbody>
+</table>
+<h2 id="控制单元模块">控制单元模块</h2>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>方向</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Op[5:0]</td>
+<td>I</td>
+<td>机器码 Op 字段</td>
+</tr>
+<tr>
+<td>Funct[5:0]</td>
+<td>I</td>
+<td>机器码 Funct 字段</td>
+</tr>
+<tr>
+<td>RegDst[1:0]</td>
+<td>O</td>
+<td>指定要写入的寄存器地址</td>
+</tr>
+<tr>
+<td>ALUSrc[1:0]</td>
+<td>O</td>
+<td>指定 ALU 的 SrcB</td>
+</tr>
+<tr>
+<td>MemtoReg[1:0]</td>
+<td>O</td>
+<td>指定写入 GRF 的源数据</td>
+</tr>
+<tr>
+<td>RegWrite</td>
+<td>O</td>
+<td>GRF 写使能信号</td>
+</tr>
+<tr>
+<td>MemWrite</td>
+<td>O</td>
+<td>DM 写使能信号</td>
+</tr>
+<tr>
+<td>nPC_sel[2:0]</td>
+<td>O</td>
+<td>指定 NPC 的值</td>
+</tr>
+<tr>
+<td>ExtOp[1:0]</td>
+<td>O</td>
+<td>指定立即数扩展类型</td>
+</tr>
+<tr>
+<td>ALUOp[2:0]</td>
+<td>O</td>
+<td>指定 ALU 运算类型</td>
+</tr>
+<tr>
+<td>ShiftOp</td>
+<td>O</td>
+<td>指定移位量</td>
+</tr>
+</tbody>
+</table>
+<p>RegDst 信号功能：</p>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>写入寄存器地址</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2’b00</td>
+<td>Instr[20:16]</td>
+</tr>
+<tr>
+<td>2’b01</td>
+<td>Instr[15:11]</td>
+</tr>
+<tr>
+<td>2’b10</td>
+<td>31</td>
+</tr>
+</tbody>
+</table>
+<p>ALUSrc 信号功能：</p>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>SrcB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2’b00</td>
+<td>GRF 的 RD2</td>
+</tr>
+<tr>
+<td>2’b01</td>
+<td>Ext_Imm</td>
+</tr>
+</tbody>
+</table>
+<p>MemtoReg 信号功能：</p>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>写入 GRF 的源数据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2’b00</td>
+<td>ALU 的 Result</td>
+</tr>
+<tr>
+<td>2’b01</td>
+<td>DM 的 RD</td>
+</tr>
+<tr>
+<td>2’b10</td>
+<td>PC+4</td>
+</tr>
+</tbody>
+</table>
+<p>ShiftOp 信号功能：</p>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th>移位量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1’b0</td>
+<td>16</td>
+</tr>
+</tbody>
+</table>
+<p>nPC_sel 信号接入 NPC，ExtOp 信号接入 EXT，ALUOp 信号接入 ALU。</p>
+<p>指令与信号的对应关系参照 Logisim 的 Control Unit：</p>
+<p><img src="\images\image-20241101181706266.png" /></p>
+<p><img src="\images\image-20241101181745414.png" /></p>
+<h1 id="测试方案">测试方案</h1>
+<p>借助讨论区的.asm
+自动生成文件<code>main.exe</code>，生成随机测试代码。然后根据自己编写的脚本将
+Mars 和 ISE 的输出结果重定向到相应的文件：</p>
+<figure class="highlight bat"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line"><span class="comment">Rem This is a bat to generate outputs of ISE and Mars</span></span><br><span class="line">main.exe</span><br><span class="line"><span class="built_in">cd</span> ..</span><br><span class="line">java -jar mars.jar mc CompactDataAtZero a dump .text HexText P4/code.txt P4/std.asm</span><br><span class="line"><span class="built_in">cd</span> P4</span><br><span class="line">fuse -nodebug -prj mips_stx_beh.prj -o mips.exe mips_tb  &gt; <span class="built_in">nul</span></span><br><span class="line">mips.exe -nolog -tclbatch mips.tcl &gt; outputs/ise_output.txt</span><br><span class="line"><span class="built_in">cd</span> ..</span><br><span class="line">java -jar mars.jar P4/std.asm mc CompactLargeText coL1 ig&gt; P4/outputs/mars_output.txt</span><br><span class="line"><span class="built_in">echo</span> &quot;The program is over&quot;</span><br></pre></td></tr></table></figure>
+<p>最后将两个 txt 文本的内容对拍以查找错误。</p>
+<h1 id="思考题">思考题</h1>
+<h4
+id="阅读下面给出的-dm-的输入示例中示例-dm-容量为-4kb即-32bit-1024-字根据你的理解回答这个-addr-信号又是从哪里来的地址信号-addr-位数为什么是-112-而不是-90">1.
+阅读下面给出的 DM 的输入示例中（示例 DM 容量为 4KB，即 32bit × 1024
+字），根据你的理解回答，这个 addr 信号又是从哪里来的？地址信号 addr
+位数为什么是 [11:2] 而不是 [9:0] ？</h4>
+<p>​ <img src="\images\66.png" /></p>
+<p><code>addr</code>信号来自<code>ALU</code>的输出。</p>
+<p>由于输入的 memory address 地址值都是 4
+的倍数，所以取<code>addr</code>的[11:2]位。</p>
+<h4
+id="思考上述两种控制器设计的译码方式给出代码示例并尝试对比各方式的优劣">2.
+思考上述两种控制器设计的译码方式，给出代码示例，并尝试对比各方式的优劣。</h4>
+<p>1.指令对应的控制信号如何取值：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">always</span> @(*)<span class="keyword">begin</span></span><br><span class="line">		<span class="keyword">case</span>(Op)</span><br><span class="line">			`ori:<span class="keyword">begin</span></span><br><span class="line">				RegDst = <span class="number">2&#x27;b00</span>;</span><br><span class="line">				ALUSrc = <span class="number">1&#x27;b1</span>;</span><br><span class="line">				MemtoReg = <span class="number">2&#x27;b0</span>;</span><br><span class="line">				RegWrite = <span class="number">1&#x27;b1</span>;</span><br><span class="line">				MemWrite = <span class="number">1&#x27;b0</span>;</span><br><span class="line">				nPC_sel = <span class="number">3&#x27;b0</span>;</span><br><span class="line">				ExtOp = <span class="number">1&#x27;b0</span>;</span><br><span class="line">				ALUctr = <span class="number">3&#x27;b010</span>;</span><br><span class="line">				ShiftOp = <span class="number">1&#x27;b0</span>;</span><br><span class="line">			<span class="keyword">end</span></span><br><span class="line">        <span class="keyword">endcase</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>2.控制信号每种取值所对应的指令</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">wire</span> add = Op == <span class="number">6&#x27;b0</span> &amp;&amp; Funct == <span class="number">6&#x27;h20</span>;</span><br><span class="line">	<span class="keyword">wire</span> sub = Op == <span class="number">6&#x27;b0</span> &amp;&amp; Funct == <span class="number">6&#x27;h22</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">assign</span> RegDst = (add || sub) ? <span class="number">2&#x27;b01</span> : <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">assign</span> ALUSrc =  <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">assign</span> MemtoReg =  <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">assign</span> RegWrite = (add) ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">assign</span> MemWrite =  <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">assign</span> nPC_sel =  <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">assign</span> ExtOp =  <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">assign</span> ALUctr = sub ? <span class="number">3&#x27;b001</span> : <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">assign</span> ShiftOp = <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+<p>第一种方式便于查错，但代码量大。第二种便于插入新指令、代码量小，但不容易维护。</p>
+<h4
+id="在相应的部件中复位信号的设计都是同步复位这与-p3-中的设计要求不同请对比同步复位与异步复位这两种方式的-reset-信号与-clk-信号优先级的关系">3.
+在相应的部件中，复位信号的设计都是<strong>同步复位</strong>，这与 P3
+中的设计要求不同。请对比<strong>同步复位</strong>与<strong>异步复位</strong>这两种方式的
+reset 信号与 clk 信号优先级的关系。</h4>
+<p>同步复位，<code>clk</code>信号优先级&gt;<code>reset</code>信号：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">always</span>@(<span class="keyword">posedge</span> clk)<span class="keyword">begin</span></span><br><span class="line">    <span class="keyword">if</span>(reset)<span class="keyword">begin</span></span><br><span class="line">       <span class="comment">//...</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>异步复位，<code>clk</code>信号优先级&lt;<code>reset</code>信号：</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">always</span>@(<span class="keyword">posedge</span> clk <span class="keyword">or</span> <span class="keyword">posedge</span> reset)<span class="keyword">begin</span></span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<h4
+id="c-语言是一种弱类型程序设计语言c-语言中不对计算结果溢出进行处理这意味着-c-语言要求程序员必须很清楚计算结果是否会导致溢出因此如果仅仅支持-c-语言mips-指令的所有计算指令均可以忽略溢出-请说明为什么在忽略溢出的前提下addi-与-addiu-是等价的add-与-addu-是等价的提示阅读mips32-architecture-for-programmers-volume-ii-the">4.
+C 语言是一种弱类型程序设计语言。C
+语言中不对计算结果溢出进行处理，这意味着 C
+语言要求程序员必须很清楚计算结果是否会导致溢出。因此，如果仅仅支持 C
+语言，MIPS 指令的所有计算指令均可以忽略溢出。
+请说明为什么在忽略溢出的前提下，addi 与 addiu 是等价的，add 与 addu
+是等价的。提示：阅读《MIPS32® Architecture For Programmers Volume II:
+The</h4>
+<h4 id="mips32-instruction-set中相关指令的-operation-部分">MIPS32®
+Instruction Set》中相关指令的 Operation 部分。</h4>
+<p><code>addi</code>：</p>
+<p><img src="\images\image-20241106110531896.png" /></p>
+<p><code>addiu</code>：</p>
+<p><img src="\images\image-20241106111315534.png" /></p>
+<p>可见若不考虑溢出，<code>addi</code>和<code>addiu</code>最终都是将<code>GPR[rs] + sign_extend(immediate)</code>赋值到<code>GPR[rt]</code>中。<code>add</code>和<code>addu</code>同理。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://hunterwarrior614.github.io">HunterWarrior</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://hunterwarrior614.github.io/2025/06/28/P4-CPU%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/">https://hunterwarrior614.github.io/2025/06/28/P4-CPU%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://hunterwarrior614.github.io" target="_blank">HunterWarrior's blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/xh-2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/06/28/P3-CPU%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/" title="P3 CPU设计文档"><img class="cover" src="/images/xh-1.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">P3 CPU设计文档</div></div><div class="info-2"><div class="info-item-1">设计草稿 设计要求  处理器为 32 位单周期处理器，应支持的指令集为：add, sub, ori, lw, sw, beq, lui, nop，其中：  nop 为空指令，机器码 0x00000000，不进行任何有效行为（修改寄存器等）。 add, sub 按无符号加减法处理（不考虑溢出）。  需要采用模块化和层次化设计。顶层有效的驱动信号要求包括且仅包括异步复位信号 reset（clk 请使用内置时钟模块）。  可以将微体系结构分为两个相互作用的部分：数据通路(datapath)和控制(control)。 先根据应实现的指令对功能部件进行设计与搭建，然后再对各个功能部件进行连接，形成完整的数据通路。 数据通路搭建完毕后，再构造控制器，以根据读取的指令产生相应的控制信号。  数据通路 1 数据通路模块定义 先从包含状态元件的硬件开始，然后在这些存储组件之间增加组合逻辑基于当前状态计算新的状态。 1.1 程序计数器（PC）   32 位寄存器。输出 PC...</div></div></div></a><a class="pagination-related" href="/2025/06/28/P5-CPU%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/" title="P5 CPU设计文档"><img class="cover" src="/images/xh-3.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">P5 CPU设计文档</div></div><div class="info-2"><div class="info-item-1">设计草稿 流水线架构 数据通路 5 级流水 CPU 分为 5 个阶段：取指阶段（F），译码阶段（D），执行阶段（E），存储阶段（M），写回阶段（W）。通过在两个阶段之间加入寄存器，来保存在前一周期中的上一阶段所传来的数据，同时在后一周期中为下一阶段提供数据。无论是数据还是信号，都需要在寄存器中进行保存，直至不再需要。 下面先从增加流水线寄存器入手，完善数据通路：  相对 P4，需要修改的地方为：  新增流水线寄存器 NPC 模块输出 PC+4 改为输出 PC+8，并区分输入 F_PC 与 D_PC ALU 不再有 Zero 信号，并且将判断相等提前到对 E_GPR_RD1 与 E_GPR_RD2 新增比较器  译码器 采用集中式译码：在取指令（F 级）时或者读取寄存器阵列信息（D 级）前，将所有的控制信号全部解析出，然后让其随着流水往后逐级传递。 流水线冒险 在流水线系统中，多条指令同时执行，当一条指令依赖于还没有结束的另一条指令的结果时，将发生冒险（hazard），也被称为“冲突”。冒险的类型，主要有结构冒险（ Structural...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">HunterWarrior</div><div class="author-info-description">行而不辍，未来可期！</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/hunterwarrior614"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E8%A6%81%E6%B1%82"><span class="toc-number">1.</span> <span class="toc-text">设计要求</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E8%8D%89%E7%A8%BF"><span class="toc-number">2.</span> <span class="toc-text">设计草稿</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%80%9A%E8%B7%AF%E6%A8%A1%E5%9D%97%E5%AE%9A%E4%B9%89"><span class="toc-number">2.1.</span> <span class="toc-text">数据通路模块定义</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#pc"><span class="toc-number">2.1.1.</span> <span class="toc-text">PC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#npc"><span class="toc-number">2.1.2.</span> <span class="toc-text">NPC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#im"><span class="toc-number">2.1.3.</span> <span class="toc-text">IM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#grf"><span class="toc-number">2.1.4.</span> <span class="toc-text">GRF</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#dm"><span class="toc-number">2.1.5.</span> <span class="toc-text">DM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#alu"><span class="toc-number">2.1.6.</span> <span class="toc-text">ALU</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ext"><span class="toc-number">2.1.7.</span> <span class="toc-text">EXT</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%A7%E5%88%B6%E5%8D%95%E5%85%83%E6%A8%A1%E5%9D%97"><span class="toc-number">2.2.</span> <span class="toc-text">控制单元模块</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%96%B9%E6%A1%88"><span class="toc-number">3.</span> <span class="toc-text">测试方案</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E9%A2%98"><span class="toc-number">4.</span> <span class="toc-text">思考题</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%98%85%E8%AF%BB%E4%B8%8B%E9%9D%A2%E7%BB%99%E5%87%BA%E7%9A%84-dm-%E7%9A%84%E8%BE%93%E5%85%A5%E7%A4%BA%E4%BE%8B%E4%B8%AD%E7%A4%BA%E4%BE%8B-dm-%E5%AE%B9%E9%87%8F%E4%B8%BA-4kb%E5%8D%B3-32bit-1024-%E5%AD%97%E6%A0%B9%E6%8D%AE%E4%BD%A0%E7%9A%84%E7%90%86%E8%A7%A3%E5%9B%9E%E7%AD%94%E8%BF%99%E4%B8%AA-addr-%E4%BF%A1%E5%8F%B7%E5%8F%88%E6%98%AF%E4%BB%8E%E5%93%AA%E9%87%8C%E6%9D%A5%E7%9A%84%E5%9C%B0%E5%9D%80%E4%BF%A1%E5%8F%B7-addr-%E4%BD%8D%E6%95%B0%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF-112-%E8%80%8C%E4%B8%8D%E6%98%AF-90"><span class="toc-number">4.0.0.1.</span> <span class="toc-text">1.
+阅读下面给出的 DM 的输入示例中（示例 DM 容量为 4KB，即 32bit × 1024
+字），根据你的理解回答，这个 addr 信号又是从哪里来的？地址信号 addr
+位数为什么是 [11:2] 而不是 [9:0] ？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E4%B8%8A%E8%BF%B0%E4%B8%A4%E7%A7%8D%E6%8E%A7%E5%88%B6%E5%99%A8%E8%AE%BE%E8%AE%A1%E7%9A%84%E8%AF%91%E7%A0%81%E6%96%B9%E5%BC%8F%E7%BB%99%E5%87%BA%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%E5%B9%B6%E5%B0%9D%E8%AF%95%E5%AF%B9%E6%AF%94%E5%90%84%E6%96%B9%E5%BC%8F%E7%9A%84%E4%BC%98%E5%8A%A3"><span class="toc-number">4.0.0.2.</span> <span class="toc-text">2.
+思考上述两种控制器设计的译码方式，给出代码示例，并尝试对比各方式的优劣。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%A8%E7%9B%B8%E5%BA%94%E7%9A%84%E9%83%A8%E4%BB%B6%E4%B8%AD%E5%A4%8D%E4%BD%8D%E4%BF%A1%E5%8F%B7%E7%9A%84%E8%AE%BE%E8%AE%A1%E9%83%BD%E6%98%AF%E5%90%8C%E6%AD%A5%E5%A4%8D%E4%BD%8D%E8%BF%99%E4%B8%8E-p3-%E4%B8%AD%E7%9A%84%E8%AE%BE%E8%AE%A1%E8%A6%81%E6%B1%82%E4%B8%8D%E5%90%8C%E8%AF%B7%E5%AF%B9%E6%AF%94%E5%90%8C%E6%AD%A5%E5%A4%8D%E4%BD%8D%E4%B8%8E%E5%BC%82%E6%AD%A5%E5%A4%8D%E4%BD%8D%E8%BF%99%E4%B8%A4%E7%A7%8D%E6%96%B9%E5%BC%8F%E7%9A%84-reset-%E4%BF%A1%E5%8F%B7%E4%B8%8E-clk-%E4%BF%A1%E5%8F%B7%E4%BC%98%E5%85%88%E7%BA%A7%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">4.0.0.3.</span> <span class="toc-text">3.
+在相应的部件中，复位信号的设计都是同步复位，这与 P3
+中的设计要求不同。请对比同步复位与异步复位这两种方式的
+reset 信号与 clk 信号优先级的关系。</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#c-%E8%AF%AD%E8%A8%80%E6%98%AF%E4%B8%80%E7%A7%8D%E5%BC%B1%E7%B1%BB%E5%9E%8B%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1%E8%AF%AD%E8%A8%80c-%E8%AF%AD%E8%A8%80%E4%B8%AD%E4%B8%8D%E5%AF%B9%E8%AE%A1%E7%AE%97%E7%BB%93%E6%9E%9C%E6%BA%A2%E5%87%BA%E8%BF%9B%E8%A1%8C%E5%A4%84%E7%90%86%E8%BF%99%E6%84%8F%E5%91%B3%E7%9D%80-c-%E8%AF%AD%E8%A8%80%E8%A6%81%E6%B1%82%E7%A8%8B%E5%BA%8F%E5%91%98%E5%BF%85%E9%A1%BB%E5%BE%88%E6%B8%85%E6%A5%9A%E8%AE%A1%E7%AE%97%E7%BB%93%E6%9E%9C%E6%98%AF%E5%90%A6%E4%BC%9A%E5%AF%BC%E8%87%B4%E6%BA%A2%E5%87%BA%E5%9B%A0%E6%AD%A4%E5%A6%82%E6%9E%9C%E4%BB%85%E4%BB%85%E6%94%AF%E6%8C%81-c-%E8%AF%AD%E8%A8%80mips-%E6%8C%87%E4%BB%A4%E7%9A%84%E6%89%80%E6%9C%89%E8%AE%A1%E7%AE%97%E6%8C%87%E4%BB%A4%E5%9D%87%E5%8F%AF%E4%BB%A5%E5%BF%BD%E7%95%A5%E6%BA%A2%E5%87%BA-%E8%AF%B7%E8%AF%B4%E6%98%8E%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9C%A8%E5%BF%BD%E7%95%A5%E6%BA%A2%E5%87%BA%E7%9A%84%E5%89%8D%E6%8F%90%E4%B8%8Baddi-%E4%B8%8E-addiu-%E6%98%AF%E7%AD%89%E4%BB%B7%E7%9A%84add-%E4%B8%8E-addu-%E6%98%AF%E7%AD%89%E4%BB%B7%E7%9A%84%E6%8F%90%E7%A4%BA%E9%98%85%E8%AF%BBmips32-architecture-for-programmers-volume-ii-the"><span class="toc-number">4.0.0.4.</span> <span class="toc-text">4.
+C 语言是一种弱类型程序设计语言。C
+语言中不对计算结果溢出进行处理，这意味着 C
+语言要求程序员必须很清楚计算结果是否会导致溢出。因此，如果仅仅支持 C
+语言，MIPS 指令的所有计算指令均可以忽略溢出。
+请说明为什么在忽略溢出的前提下，addi 与 addiu 是等价的，add 与 addu
+是等价的。提示：阅读《MIPS32® Architecture For Programmers Volume II:
+The</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#mips32-instruction-set%E4%B8%AD%E7%9B%B8%E5%85%B3%E6%8C%87%E4%BB%A4%E7%9A%84-operation-%E9%83%A8%E5%88%86"><span class="toc-number">4.0.0.5.</span> <span class="toc-text">MIPS32®
+Instruction Set》中相关指令的 Operation 部分。</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告"><img src="/images/swap.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS_Challenge_SWAP 实现报告"/></a><div class="content"><a class="title" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告">OS_Challenge_SWAP 实现报告</a><time datetime="2025-06-28T07:12:08.000Z" title="发表于 2025-06-28 15:12:08">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="OS LAB5 文件系统"><img src="/images/gqj-5.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB5 文件系统"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="OS LAB5 文件系统">OS LAB5 文件系统</a><time datetime="2025-06-28T06:57:37.000Z" title="发表于 2025-06-28 14:57:37">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB4-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8Efork/" title="OS LAB4 系统调用与fork"><img src="/images/gqj-4.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB4 系统调用与fork"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB4-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8Efork/" title="OS LAB4 系统调用与fork">OS LAB4 系统调用与fork</a><time datetime="2025-06-28T06:57:24.000Z" title="发表于 2025-06-28 14:57:24">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB3-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BC%82%E5%B8%B8/" title="OS LAB3 进程与异常"><img src="/images/gqj-3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB3 进程与异常"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB3-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BC%82%E5%B8%B8/" title="OS LAB3 进程与异常">OS LAB3 进程与异常</a><time datetime="2025-06-28T06:57:07.000Z" title="发表于 2025-06-28 14:57:07">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="OS LAB2 内存管理"><img src="/images/gqj-2.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB2 内存管理"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="OS LAB2 内存管理">OS LAB2 内存管理</a><time datetime="2025-06-28T06:56:46.000Z" title="发表于 2025-06-28 14:56:46">2025-06-28</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/images/xh-2.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 By HunterWarrior</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://hunterwarrior.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = (el = document, path = location.pathname) => {
+    twikoo.init({
+      el: el.querySelector('#twikoo-wrap'),
+      envId: 'https://hunterwarrior.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      },
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || path
+    })
+
+    
+
+    isShuoshuo && (window.shuoshuoComment.destroyTwikoo = () => {
+      if (el.children.length) {
+        el.innerHTML = ''
+        el.classList.add('no-comment')
+      }
+    })
+  }
+
+  const loadTwikoo = (el, path) => {
+    if (typeof twikoo === 'object') setTimeout(() => init(el, path), 0)
+    else btf.getScript('https://cdn.jsdelivr.net/npm/twikoo/dist/twikoo.all.min.js').then(() => init(el, path))
+  }
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Twikoo'
+      ? window.shuoshuoComment = { loadComment: loadTwikoo }
+      : window.loadOtherComment = loadTwikoo
+    return
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --> <script data-pjax>if(document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+    var parent = document.getElementById('recent-posts');
+    var child = '<div class="recent-post-item" style="width:100%;height: auto"><div id="catalog_magnet"><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/深度学习/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">🤖 深度学习 (1)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/操作系统/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">🐧 操作系统 (6)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><a class="magnet_link_more"  href="https://hunterwarrior614.github.io/categories" style="flex:1;text-align: center;margin-bottom: 10px;">查看更多...</a></div></div>';
+    console.log('已挂载magnet')
+    parent.insertAdjacentHTML("afterbegin",child)}
+     </script><style>#catalog_magnet{flex-wrap: wrap;display: flex;width:100%;justify-content:space-between;padding: 10px 10px 0 10px;align-content: flex-start;}.magnet_item{flex-basis: calc(50% - 5px);background: #f2f2f2;margin-bottom: 10px;border-radius: 8px;transition: all 0.2s ease-in-out;}.magnet_item:hover{background: #b30070}.magnet_link_more{color:#555}.magnet_link{color:black}.magnet_link:hover{color:white}@media screen and (max-width: 600px) {.magnet_item {flex-basis: 100%;}}.magnet_link_context{display:flex;padding: 10px;font-size:16px;transition: all 0.2s ease-in-out;}.magnet_link_context:hover{padding: 10px 20px;}</style>
+    <style></style><script data-pjax>
+  function butterfly_footer_beautify_injector_config(){
+    var parent_div_git = document.getElementById('footer-wrap');
+    var item_html = '<div id="workboard"></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://www.xiaohongshu.com/user/profile/64f889d80000000004025d95?xsec_token=YBi3PR-3T81wvDpmtkmQlbImFcxayPVlg8qMw0SouA1_Y%3D&amp;xsec_source=app_share&amp;xhsshare=CopyLink&amp;appuid=64f889d80000000004025d95&amp;apptime=1751045227&amp;share_id=329450afb821445ca52895a817e5a394&amp;share_channel=copy_link" style="margin-inline:5px" data-title="博客框架为Hexo_v6.2.0" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-%E5%B0%8F%E7%BA%A2%E4%B9%A6-%23FF2442?logo=xiaohongshu" alt=""/></a><a class="github-badge" target="_blank" href="https://s21.ax1x.com/2025/06/28/pVmvpOx.jpg" style="margin-inline:5px" data-title="博客托管在GitHub Pages上" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-%E5%BE%AE%E4%BF%A1-%2307C160?logo=wechat" alt=""/></a><a class="github-badge" target="_blank" href="https://blog.csdn.net/2301_79780038?type=blog" style="margin-inline:5px" data-title="博客地址为GitHub Pages" title=""><img src="https://img.shields.io/badge/IT%E7%A4%BE%E5%8C%BA-CSDN-%23FC5531?logo=csdn" alt=""/></a></p>';
+    console.log('已挂载butterfly_footer_beautify')
+    parent_div_git.insertAdjacentHTML("beforeend",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_footer_beautify_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_footer_beautify_injector_config();
+  }
+  </script><script async src="/js/runtime.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"left","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body></html>

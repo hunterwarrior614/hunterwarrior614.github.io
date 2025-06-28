@@ -1,0 +1,506 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>OO Unit1 表达式解析 | HunterWarrior's blog</title><meta name="author" content="HunterWarrior"><meta name="copyright" content="HunterWarrior"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="基于度量分析程序结构 类图  Unit1 最终版本的类图如上图所示。整个程序的核心思想采用了递归下降法，大体流程是：对于输入数据 input，先在 Main 方法中依次调用类 ComFunc 的 defineComFunc 静态方法和 RecFunc 的 defineRecFunc 静态方法，解析自定义普通函数和自定义递推函数，然后再解析待展开表达式：实例化一个 Lexer 对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OO Unit1 表达式解析">
+<meta property="og:url" content="https://hunterwarrior614.github.io/2025/06/28/OO-Unit1-%E5%8D%95%E5%85%83%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="HunterWarrior&#39;s blog">
+<meta property="og:description" content="基于度量分析程序结构 类图  Unit1 最终版本的类图如上图所示。整个程序的核心思想采用了递归下降法，大体流程是：对于输入数据 input，先在 Main 方法中依次调用类 ComFunc 的 defineComFunc 静态方法和 RecFunc 的 defineRecFunc 静态方法，解析自定义普通函数和自定义递推函数，然后再解析待展开表达式：实例化一个 Lexer 对">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://hunterwarrior614.github.io/images/qyqx-1.jpg">
+<meta property="article:published_time" content="2025-06-28T06:43:47.000Z">
+<meta property="article:modified_time" content="2025-06-28T06:53:23.606Z">
+<meta property="article:author" content="HunterWarrior">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hunterwarrior614.github.io/images/qyqx-1.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "OO Unit1 表达式解析",
+  "url": "https://hunterwarrior614.github.io/2025/06/28/OO-Unit1-%E5%8D%95%E5%85%83%E6%80%BB%E7%BB%93/",
+  "image": "https://hunterwarrior614.github.io/images/qyqx-1.jpg",
+  "datePublished": "2025-06-28T06:43:47.000Z",
+  "dateModified": "2025-06-28T06:53:23.606Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "HunterWarrior",
+      "url": "https://hunterwarrior614.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://hunterwarrior614.github.io/2025/06/28/OO-Unit1-%E5%8D%95%E5%85%83%E6%80%BB%E7%BB%93/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: HunterWarrior","link":"链接: ","source":"来源: HunterWarrior's blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'OO Unit1 表达式解析',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="/css/universe.css"><!-- hexo injector head_end start --><link rel="stylesheet" href="https://www.fomal.cc/static/css/runtime.min.css" media="print" onload="this.media='all'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="/pace/flash.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg" style="background-color: #F0FFFD;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/qyqx-1.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.ico" alt="Logo"><span class="site-name">HunterWarrior's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">OO Unit1 表达式解析</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">OO Unit1 表达式解析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-28T06:43:47.000Z" title="发表于 2025-06-28 14:43:47">2025-06-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-28T06:53:23.606Z" title="更新于 2025-06-28 14:53:23">2025-06-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/">面向对象编程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4k</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="基于度量分析程序结构">基于度量分析程序结构</h1>
+<h2 id="类图">类图</h2>
+<p><img src="\images\pE05FN8.png" /></p>
+<p>Unit1
+最终版本的类图如上图所示。整个程序的核心思想采用了<strong>递归下降法</strong>，大体流程是：对于输入数据
+<code>input</code>，先在 <code>Main</code> 方法中依次调用类
+<code>ComFunc</code> 的 <code>defineComFunc</code> 静态方法和
+<code>RecFunc</code> 的 <code>defineRecFunc</code>
+静态方法，<strong>解析自定义普通函数和自定义递推函数</strong>，然后<strong>再解析待展开表达式</strong>：实例化一个
+<code>Lexer</code>
+对象，实现<strong>词法解析</strong>，并将解析的结果传递到
+<code>Parse</code>
+的实例对象，实现<strong>语法解析</strong>，解析得到一个
+<code>Expr</code> 实例 <code>expr</code>，然后再将 <code>expr</code>
+转为 <code>Poly</code>（由 <code>Unit</code>
+构成）的<strong>多项式</strong>形式，并在转化的过程中实现表达式的<strong>计算</strong>（实体类
+<code>Poly</code> 与 <code>Unit</code>）与<strong>化简</strong>（工具类
+<code>Simplify</code>），
+最后将结果作为<strong>字符串输出</strong>。</p>
+<h2 id="度量">度量</h2>
+<p>IntelliJ IDEA 的插件 MetricsReloaded
+帮助计算了以下方法度量值，故在此围绕这些度量进行分析。</p>
+<p><img src="\images\pEBpbfH.png" /></p>
+<ul>
+<li><p><strong>CogC（Cognitive Complexity，认知复杂度）</strong></p>
+<p><img src="\images\pE0otTx.png" alt="pE0otTx.png"  /></p>
+<p>CogC 是通过代码中的逻辑分支（如
+<code>if</code>、<code>for</code>、<code>switch</code>）和嵌套层级计算，衡量代码的对于程序员的理解难度（<strong>单个方法的
+CogC 应 &lt;
+15</strong>）。由上图可见，大部分方法认知复杂度合理，但个别方法的认知复杂度较大。经分析，主要是由于单个方法中逻辑分支过多、判断条件复杂以及嵌套层级较深所导致。</p>
+<p><strong>优化方案</strong>：使用卫语句（Guard
+Clauses）提前返回，减少嵌套层级。</p></li>
+<li><p><strong>ev(G)（基本复杂度）</strong>与 <strong>iv(G)
+（模块设计复杂度）</strong></p>
+<p><img src="\images\pE0XmJ1.png" /></p>
+<p><img src="\images\pE0XcYn.png" /></p>
+<p>ev(G)
+衡量代码中非结构化逻辑的复杂度，值越高说明代码越难以简化或重构（<strong>单个方法的
+ev(G) 应接近 1</strong>）；iv(G)
+衡量模块与其他模块之间的交互复杂度（<strong>单个方法的 iv(G) 应 &lt;
+9</strong>）。由上图可见大部分方法的复杂度都比较合理，但是个别方法复杂度太大。经分析，主要是由于一个方法中过多地调用其它类方法，导致过多依赖外部逻辑，<strong>违反了低耦合原则</strong>。</p>
+<p><strong>优化方案：</strong></p>
+<ul>
+<li>模块的功能化分尽可能的单一（功能单一的模块供其它模块调用的机会就少）。</li>
+<li>类属性和方法的声明少用 public，多用 private
+关键字（公共的就有可能被到处调用，到处 new 对象）。</li>
+<li>少使用类的继承，多用接口隐藏实现的细节。</li>
+</ul></li>
+<li><p><strong>v(G)（圈复杂度）</strong></p>
+<p><img src="\images\pE0v6x0.png" alt="pE0v6x0.png" style="zoom:87%;" /></p>
+<p>v(G) 是基于代码中独立路径数量的经典复杂度指标，高 v(G)
+的代码单元测试需要覆盖更多路径（<strong>单个方法的 v(G) 应&lt;
+10</strong>）。由上图可见个别方法圈复杂度太大，经分析主要是条件判断和处理逻辑太复杂导致的，如圈复杂度为
+40 的一个方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> ArrayList&lt;Unit&gt; <span class="title function_">simplify</span><span class="params">(Unit unit1, Unit unit2, Unit samePart)</span> &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="keyword">if</span> (s1 == <span class="number">1</span> &amp;&amp; c1 == <span class="number">0</span> &amp;&amp; c2 == <span class="number">1</span> &amp;&amp; s2 == <span class="number">0</span>) &#123;</span><br><span class="line">            units = simplifyOne(unitOnly1, unitOnly2);</span><br><span class="line">            <span class="keyword">if</span> (units != <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> units;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (s2 == <span class="number">1</span> &amp;&amp; c2 == <span class="number">0</span> &amp;&amp; c1 == <span class="number">1</span> &amp;&amp; s1 == <span class="number">0</span>) &#123;</span><br><span class="line">            units = simplifyOne(unitOnly2, unitOnly1);</span><br><span class="line">            <span class="keyword">if</span> (units != <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> units;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// ... 大量类似于上述的if-else if分支，其中条件判断包含 &amp;&amp; 和 ||</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><strong>优化方案：</strong>使用策略模式，将每个条件分支的条件判断和处理逻辑分离。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> ArrayList&lt;Unit&gt; <span class="title function_">simplify</span><span class="params">(Unit unit1, Unit unit2, Unit samePart)</span> &#123;</span><br><span class="line">    <span class="comment">// 定义条件-处理的策略列表</span></span><br><span class="line">    List&lt;SimplificationStrategy&gt; strategies = Arrays.asList(</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">SimplificationStrategy</span>(SimplifyType.ONE, (u1, u2) -&gt; checkSize(u1, <span class="number">1</span>, <span class="number">0</span>) &amp;&amp; checkSize(u2, <span class="number">0</span>, <span class="number">1</span>)),</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">SimplificationStrategy</span>(SimplifyType.ONE, (u1, u2) -&gt; checkSize(u2, <span class="number">1</span>, <span class="number">0</span>) &amp;&amp; checkSize(u1, <span class="number">0</span>, <span class="number">1</span>))</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 按顺序匹配策略</span></span><br><span class="line">    <span class="keyword">for</span> (SimplificationStrategy strategy : strategies) &#123;</span><br><span class="line">        <span class="keyword">if</span> (strategy.condition.test(unitOnly1, unitOnly2)) &#123;</span><br><span class="line">            ArrayList&lt;Unit&gt; result = strategy.apply(unitOnly1, unitOnly2);</span><br><span class="line">            <span class="keyword">if</span> (result != <span class="literal">null</span> || strategy.allowNullResult) &#123;</span><br><span class="line">                <span class="keyword">return</span> result;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ... 定义内部类策略类 SimplificationStrategy，封装条件和处理方法</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="分析总结">分析总结</h2>
+<ul>
+<li><strong>优点：</strong>对于表达式（包括自定义函数）的解析，使用工具类
+<code>Lexer</code> 和
+<code>Parse</code>，实现了模块化与单一原则。对于表达式的语法解析，将每个层次封装为一个类，同一层次若有不同类型则封装为接口（如
+<code>Factor</code>），并通过类（如
+<code>NumFactor</code>，<code>DrvFactor</code>
+等）实现接口的方式实现，最终形成语法树。这种方式将不同表达式的构成高度模块化，遵循高内聚低耦合的思想，使代码的调试、修改与重构，以及迭代中的增量开发变得更加清晰容易。</li>
+<li><strong>缺点：</strong>部分方法太过臃肿，例如表达式的计算与化简，很多方法都是面向过程，没有很好地使用
+java 设计模式的特性。</li>
+</ul>
+<h1 id="架构设计体验">架构设计体验</h1>
+<ul>
+<li><p><strong>第一次作业：</strong>参考往届博客经验，采用先导课所讲的<strong>梯度下降法</strong>。先进行<strong>词法解析</strong>生成
+Token
+流，词法解析结束后表达式将不包含空白项，不包含多余正负号。再进行<strong>语法解析</strong>，从左至右遍历
+Token
+流，按照形式化表述递归解析（自上而下），生成语法树。最后自下而上依次将因子、项、表达式转化为<strong>多项式形式</strong>。多项式
+<code>Poly</code> 由若干个 <code>Mono</code> 组成，<code>Mono</code>
+的基本形式为 <span
+class="math inline"><em>a</em> * <em>x</em><sup><em>n</em></sup></span>，这种形式可以将所有表达式构成<strong>转化为统一的形式</strong>，极大地便利了计算与化简过程。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">scanner</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line">        <span class="type">String</span> <span class="variable">input</span> <span class="operator">=</span> scanner.nextLine();</span><br><span class="line"></span><br><span class="line">        <span class="type">Lexer</span> <span class="variable">lexer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Lexer</span>(input.replaceAll(<span class="string">&quot;[ \t]&quot;</span>, <span class="string">&quot;&quot;</span>)); <span class="comment">// 删除所有空白符</span></span><br><span class="line">        <span class="type">Parse</span> <span class="variable">parser</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Parse</span>(lexer);</span><br><span class="line">        <span class="type">Expr</span> <span class="variable">expr</span> <span class="operator">=</span> parser.parseExpr();</span><br><span class="line">        System.out.println(expr.toPoly());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>第二次作业：</strong>程序主体流程与第一次作业相同，难点主要在于三角函数的计算与化简、自定义递推表达式调用的解析。由于引入三角函数，故最小单元
+<code>Mono</code> 需要调整为 <code>Unit</code>，其基本形式为</p>
+<p><span
+class="math display"><em>a</em><em>x</em><sup><em>n</em></sup>∏sin<sup><em>i</em></sup>(<em>f</em><em>a</em><em>c</em><em>t</em><em>o</em><em>r</em>)∏cos<sup><em>j</em></sup>(<em>f</em><em>a</em><em>c</em><em>t</em><em>o</em><em>r</em>)</span></p>
+<ul>
+<li><p>对于自定义递推表达式的定义，借助递推函数类 <code>RecFunc</code>
+中的 <code>defineRecFunc</code>
+静态方法实现解析，解析结果保存为字符串；对于递推调用，解析步骤是：先将
+<code>f&#123;n&#125;</code> 表达式的所有形参正确替换为实参，得到替换结果
+<code>exprString</code>，再对 <code>exprString</code>
+进行与题目输入表达式相同的解析流程，即词法解析、语法解析和转为多项式形式，结果保存在该递推实例中。</p></li>
+<li><p>对于三角函数的计算与化简，难点在于如何判断两个三角函数括号内的内容是否相等或互为相反数、如何分离出两个
+<code>unit</code> 的不同部分。</p>
+<ul>
+<li><p>对于两个三角函数括号内内容的比较，我起初做法是将两个内容
+<code>poly1</code> 与 <code>poly2</code> 进行加减运算，若相加为得到的
+<code>poly</code> 为 0，那么互为相反数；若相减得到的 <code>poly</code>
+为
+0，那么相等；否则既不相等也不互为相反数。这种做法确实可行，且帮助我渡过了强测与互测，但是我在应对形如
+<code>f&#123;5&#125;(f&#123;5&#125;(f&#123;5&#125;(sin(sin(sin(x))))))</code>
+的表达式时，出现了长时间出不了结果的问题。通过工具分析，发现上述比较过程占据了大量的时间（因为每比较一次就要进行
+<code>Poly</code> 的计算与化简）。所以最后我不得不重构，采用了重写
+<code>hashCode()</code> 和 <code>equals()</code>
+方法的方式实现三角函数内容的比较，这种方式确实极大地优化了我程序的时间复杂度。</p>
+<p>重构前：</p>
+<p><img src="\images\pE0z2EF.png" /></p>
+<p>重构后：</p>
+<p><img src="\images\pEBpLpd.png" /></p></li>
+<li><p>对于三角函数的化简，我在第二次作业中实现了以下几种类型的化简（下图截自第二次作业的思路
+note）。</p>
+<p><img src="\images\pE0zA6x.png" alt="pE0zA6x.png" style="zoom: 50%;" /></p>
+<p>我的化简思路是先判断两个 <code>unit</code>
+是否符合化简的前置条件，即幂指数是否相等。若符合，则提取两个
+<code>unit</code> 的公共部分，再根据公共部分提取出两个 <code>unit</code>
+的不同部分 <code>unitOnly1</code> 和
+<code>unitOnly2</code>，最后再对这两个不同部分进行判断是否符合上图的化简情况。起初我的化简是在
+<code>Unit</code> 类中实现的，后来发现类超过了 500
+行，并且<strong>违反了单一职责原则</strong>，所以我新建了一个工具类
+<code>Simplify</code>
+专门用于化简三角函数。对于一些特殊情况的化简，如两个三角函数化简后，整个多项式又出现了可化简的两个
+<code>unit</code>；<code>-sin(x)</code> 比 <code>sin((-x))</code>
+短等情况，我专门写了一些方法如 <code>selfMerge()</code> 和
+<code>selfSimplify()</code> 用于化简：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// class Main</span></span><br><span class="line">System.out.println(expr.toPoly().selfMerge().selfSimplify());</span><br></pre></td></tr></table></figure></li>
+</ul></li>
+</ul></li>
+<li><p>第三次作业：由于前两次作业的<strong>高度模块化</strong>，第三次作业要求新增的求导因子与自定义普通函数很快地实现了，且改动极小。我也趁此实现了三角<strong>和差公式</strong>的化简。最终的
+<code>main</code> 方法是这样的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Scanner</span> <span class="variable">scanner</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Scanner</span>(System.in);</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> scanner.nextInt();</span><br><span class="line">        scanner.nextLine(); <span class="comment">// 读取换行符</span></span><br><span class="line">        <span class="keyword">if</span> (n != <span class="number">0</span>) &#123;   <span class="comment">// 读取普通函数定义并解析</span></span><br><span class="line">            ArrayList&lt;String&gt; definitions = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">                definitions.add(scanner.nextLine().replaceAll(<span class="string">&quot;[ \t\n]&quot;</span>, <span class="string">&quot;&quot;</span>));</span><br><span class="line">            &#125;</span><br><span class="line">            ComFunc.defineComFunc(definitions);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> <span class="variable">m</span> <span class="operator">=</span> scanner.nextInt();</span><br><span class="line">        scanner.nextLine(); <span class="comment">// 读取换行符</span></span><br><span class="line">        <span class="keyword">if</span> (m == <span class="number">1</span>) &#123;   <span class="comment">// 读取递推函数定义并解析</span></span><br><span class="line">            ArrayList&lt;String&gt; definition = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">3</span>; i++) &#123;</span><br><span class="line">                definition.add(scanner.nextLine().replaceAll(<span class="string">&quot;[ \t\n]&quot;</span>, <span class="string">&quot;&quot;</span>));</span><br><span class="line">            &#125;</span><br><span class="line">            RecFunc.defineRecFunc(definition);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">String</span> <span class="variable">input</span> <span class="operator">=</span> scanner.nextLine();</span><br><span class="line">        <span class="type">Lexer</span> <span class="variable">lexer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Lexer</span>(input.replaceAll(<span class="string">&quot;[ \t]&quot;</span>, <span class="string">&quot;&quot;</span>)); <span class="comment">// 删除所有空白符</span></span><br><span class="line">        <span class="type">Parse</span> <span class="variable">parser</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Parse</span>(lexer);</span><br><span class="line">        <span class="type">Expr</span> <span class="variable">expr</span> <span class="operator">=</span> parser.parseExpr();</span><br><span class="line">        System.out.println(expr.toPoly().selfMerge().selfSimplify());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>若有新的迭代场景，如引入除法和小数，我的程序也能够稍加改动变可以实现：</p>
+<ul>
+<li>词法解析新增除法 <code>/</code>，语法解析中因子与因子的连接符新增
+<code>/</code>;</li>
+<li>程序中作为系数出现的 <code>BigInteger</code> 替换为
+<code>BigDecimal</code>;</li>
+<li><code>Poly</code> 与 <code>Unit</code>
+计算引入除法，<code>Unit</code>
+基本形式引入<strong>分子</strong>部分和<strong>分母</strong>部分；</li>
+<li>对于化简，可以先对 <code>unit</code>
+各自进行约分化简，即遍历分子分母，有无同项化简、二倍角化简，然后在进行
+<code>unit</code> 间的化简。</li>
+</ul>
+<h1 id="程序-bug-分析">程序 bug 分析</h1>
+<p>很幸运，在第一单元中，我只在第二次作业的强测和互测各有一个点未通过，其余测试均
+AC。我将其归功于<strong>高度模块化的程序结构设计</strong>与<strong>自主搭建的评测机的压力测试</strong>。未通过的两个点都是同一个
+bug：当三角函数括号内为非因子时，我在某些情况下不会输出非因子外应有的一层括号。具体而言，当输入为
+<code>sin((sin(x)*cos(x)))</code> 时，我会输出
+<code>sin(sin(x)*cos(x))</code>，不符合形式化表述。</p>
+<p><strong>原因：</strong>我在判断是否要输出嵌套括号时，对三角函数因子匹配采用了错误的正则表达式匹配逻辑：<code>^(sin|cos)\((.)+\)$</code>，由于贪婪匹配的特性，导致
+<code>x)*cos(x</code> 会被 <code>(.)+</code>
+给匹配，从而误以为该表达式是三角函数因子，实则为项。</p>
+<p><strong>解决方案：</strong>强化判断。在匹配上述正则的情况下，遍历三角函数括号内部分，记录括号匹配情况，当第一次出现左右括号一一配对完毕时，若仍有剩余内容，则非三角函数因子，反之则为三角函数因子。</p>
+<h1 id="互测策略">互测策略</h1>
+<p>基于 Python 搭建的评测机。</p>
+<p><code>generate_data.py</code>
+完全遵守形式化表述，依概率随机生成输入样例。并手动调节自定义函数和输入表达式的项与因子个数，限制生成样例的复杂度，提高生成样例的质量。</p>
+<p><code>pipeline.py</code> 作为对拍器，从 <code>generate.py</code>
+获取输入样例，并依次输入给不同的 <code>.jar</code>
+程序，获取相应的输出，借助 Python 的第三方库函数 Sympy
+进行两两比较，当出现表达式不相等或超时时终止程序并保存相应的样例。</p>
+<p>由于互测输入数据的限制，对于别人出现异常的输入样例，先进行手动化简，定位到测试出
+bug 的数据段，然后再提交样例。</p>
+<p><img src="\images\pEBS7zn.png" /></p>
+<h1 id="程序优化分析">程序优化分析</h1>
+<ul>
+<li>代码结构优化：对于三角函数的化简功能，一开始是在 <code>Unit</code>
+类中实现，但发现类行数超过
+500。经过分析，该代码设计违反了单一职责原则，<code>Unit</code>
+类做了过多的实现。因此我新建了 <code>Simplify</code>
+类，专门用于三角函数的化简，既减轻了 <code>Unit</code>
+的负担，也使代码更加清晰易懂。</li>
+<li>时间复杂度优化：对于不同三角函数的括号内内容的比较，一开始通过计算的方式实现，但该方法时间复杂度巨大，有大量重复且冗余的计算。因此我通过重写
+<code>Poly</code> 与 <code>Unit</code> 的 <code>hashCode()</code> 与
+<code>equals()</code> 方法，避免了比较时多项式的计算，而是通过
+<code>hash</code> 值的计算，大大优化了时间复杂度。</li>
+</ul>
+<p>我的优化可以保证代码的简洁性与正确性。主要得益于我尽可能地限制了类成员的访问级别，实体类字段一律采用
+<code>private</code> 属性，外部只能通过调用 <code>get</code>
+方法去访问。部分类方法采用 <code>priavte</code>
+字段，避免外部类去更改该类的属性。在重构时，基本只需关注代码编译正确性而非运行正确性，因为类的属性被很好地保护。</p>
+<h1 id="心得体会">心得体会</h1>
+<p>本单元我最大的收获主要是以下三方面：</p>
+<ul>
+<li><strong>大大加深了对递归下降法的理解</strong>：通过该单元的练习，我从先导课时对递归下降法的晦涩不解、望而生畏，到三次迭代作业结束后对递归下降法的清晰明了、游刃有余。在这个过程中，我深刻体会到递归下降的优雅，极大地方便了对一串输入的解析与处理。</li>
+<li><strong>第一次自主搭建了评测机</strong>：在 OO
+强测与互测的压力下，我不得不去搭建一个评测机去测试我程序的正确性。这是我第一次搭建评测机。在这个过程中，我真的收获颇多，学会了如何依概率生成测试数据、如何对数据生成质量调优、如何将
+Python 程序打包成 exe 程序……</li>
+<li><strong>学会了如何重写 <code>hashCode()</code> 与
+<code>equals()</code></strong>：在重写的过程中，我深刻体会了 Java
+比较两个对象是否相等的逻辑：先比较两个对象的 <code>hash</code>
+值是否相等，若相等，再调用 <code>equals()</code>
+方法进一步判断是否相等。并且，<strong>一个 Key 在放入 HashMap
+之后，若其字段发生改变，HashMap 可能无法再找到这个
+Key（除非用遍历的方法）！</strong>这个错误非常隐蔽，因此 HashMap
+的键最好是不变类！</li>
+</ul>
+<p>此外，对于大模型的使用，我也积累了一些经验。鉴于 DeepSeek
+的强大功能，我在评测机搭建以及代码优化方面使用了大模型，以帮助我更好地实现。</p>
+<h1 id="未来方向">未来方向</h1>
+<ul>
+<li>感觉第二次作业的内容可以再拆分一下。个人明显感觉第二次作业的强度远高于其余两次，主要在于三角函数的引入与化简是两个工作量非常大的任务。</li>
+<li>关于评测机的搭建，我认为课程组可以试着加入教程中。我在搭建评测机时，发现网络上的资源非常有效，基本只能依靠往届博客和
+DeepSeek。</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://hunterwarrior614.github.io">HunterWarrior</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://hunterwarrior614.github.io/2025/06/28/OO-Unit1-%E5%8D%95%E5%85%83%E6%80%BB%E7%BB%93/">https://hunterwarrior614.github.io/2025/06/28/OO-Unit1-%E5%8D%95%E5%85%83%E6%80%BB%E7%BB%93/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://hunterwarrior614.github.io" target="_blank">HunterWarrior's blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/qyqx-1.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/06/28/P7-CPU%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/" title="P7 CPU设计文档"><img class="cover" src="/images/xh-5.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">P7 CPU设计文档</div></div><div class="info-2"><div class="info-item-1">设计草稿 任务清单  流水线 CPU 为计时器模块（已实现）提供接口 创建系统桥模块，为 CPU 提供统一的访问外设的接口 创建协处理器 CP0模块，用于引导 CPU 执行异常处理程序 使 CPU 能够检测内部指令执行的错误 使 CPU 能够初步响应外部的中断信号 在 CPU 中实现一些异常处理需要执行的指令   注： CPU（包含 CP0）、Bridge 和 2 个计时器 Timer1、Timer2都是MIPS 微系统的组成部分，也即我们需要设计搭建的系统模块；而 DM 和中断产生器是外部的设备，由外部（testbench）传入，与我们无关。 对于 Bridge 来说，Timer1、Timer2 和 InterruptGenerator...</div></div></div></a><a class="pagination-related" href="/2025/06/28/OO-Unit2-%E5%8D%95%E5%85%83%E6%80%BB%E7%BB%93/" title="OO Unit2 多线程"><img class="cover" src="/images/qyqx-2.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">OO Unit2 多线程</div></div><div class="info-2"><div class="info-item-1">架构设计  黄色部分为第一次作业的类，红色部分为第二次作业新增类，紫色部分为第三次作业新增类。 架构迭代 第一次作业 整体采用了生产者-消费者的设计模式。考虑到第一次作业指定了乘客请求的电梯，我并没有设置调度器线程，而是输入线程 inputThread 读取到乘客请求后直接放入每个电梯各自的乘客请求处理队列 processingQueue。电梯运行采用 LOOK 策略，电梯线程 elevatorThread 每执行完一个动作后从自己的 processingQueue 中取出一个乘客请求，并结合自身的信息发送给策略类 Strategy，获取下一动作 advice 并执行。 第二次作业 第二次作业新增了临时调度请求，并取消了乘客请求指定电梯，即需要调度给某部电梯来运送乘客。因此在第二次作业中，我新增了全局的请求队列 requestQueue，并由调度器线程 dispatchThread 来将请求分配给某部电梯，放入其请求处理队列 processingQueue，随后电梯线程...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">HunterWarrior</div><div class="author-info-description">行而不辍，未来可期！</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/hunterwarrior614"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E5%BA%A6%E9%87%8F%E5%88%86%E6%9E%90%E7%A8%8B%E5%BA%8F%E7%BB%93%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">基于度量分析程序结构</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B1%BB%E5%9B%BE"><span class="toc-number">1.1.</span> <span class="toc-text">类图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BA%A6%E9%87%8F"><span class="toc-number">1.2.</span> <span class="toc-text">度量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E6%9E%90%E6%80%BB%E7%BB%93"><span class="toc-number">1.3.</span> <span class="toc-text">分析总结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%E4%BD%93%E9%AA%8C"><span class="toc-number">2.</span> <span class="toc-text">架构设计体验</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F-bug-%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">程序 bug 分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%92%E6%B5%8B%E7%AD%96%E7%95%A5"><span class="toc-number">4.</span> <span class="toc-text">互测策略</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F%E4%BC%98%E5%8C%96%E5%88%86%E6%9E%90"><span class="toc-number">5.</span> <span class="toc-text">程序优化分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BF%83%E5%BE%97%E4%BD%93%E4%BC%9A"><span class="toc-number">6.</span> <span class="toc-text">心得体会</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%9C%AA%E6%9D%A5%E6%96%B9%E5%90%91"><span class="toc-number">7.</span> <span class="toc-text">未来方向</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告"><img src="/images/swap.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS_Challenge_SWAP 实现报告"/></a><div class="content"><a class="title" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告">OS_Challenge_SWAP 实现报告</a><time datetime="2025-06-28T07:12:08.000Z" title="发表于 2025-06-28 15:12:08">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="OS LAB5 文件系统"><img src="/images/gqj-5.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB5 文件系统"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="OS LAB5 文件系统">OS LAB5 文件系统</a><time datetime="2025-06-28T06:57:37.000Z" title="发表于 2025-06-28 14:57:37">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB4-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8Efork/" title="OS LAB4 系统调用与fork"><img src="/images/gqj-4.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB4 系统调用与fork"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB4-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8Efork/" title="OS LAB4 系统调用与fork">OS LAB4 系统调用与fork</a><time datetime="2025-06-28T06:57:24.000Z" title="发表于 2025-06-28 14:57:24">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB3-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BC%82%E5%B8%B8/" title="OS LAB3 进程与异常"><img src="/images/gqj-3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB3 进程与异常"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB3-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BC%82%E5%B8%B8/" title="OS LAB3 进程与异常">OS LAB3 进程与异常</a><time datetime="2025-06-28T06:57:07.000Z" title="发表于 2025-06-28 14:57:07">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="OS LAB2 内存管理"><img src="/images/gqj-2.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB2 内存管理"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="OS LAB2 内存管理">OS LAB2 内存管理</a><time datetime="2025-06-28T06:56:46.000Z" title="发表于 2025-06-28 14:56:46">2025-06-28</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/images/qyqx-1.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 By HunterWarrior</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://hunterwarrior.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = (el = document, path = location.pathname) => {
+    twikoo.init({
+      el: el.querySelector('#twikoo-wrap'),
+      envId: 'https://hunterwarrior.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      },
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || path
+    })
+
+    
+
+    isShuoshuo && (window.shuoshuoComment.destroyTwikoo = () => {
+      if (el.children.length) {
+        el.innerHTML = ''
+        el.classList.add('no-comment')
+      }
+    })
+  }
+
+  const loadTwikoo = (el, path) => {
+    if (typeof twikoo === 'object') setTimeout(() => init(el, path), 0)
+    else btf.getScript('https://cdn.jsdelivr.net/npm/twikoo/dist/twikoo.all.min.js').then(() => init(el, path))
+  }
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Twikoo'
+      ? window.shuoshuoComment = { loadComment: loadTwikoo }
+      : window.loadOtherComment = loadTwikoo
+    return
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --> <script data-pjax>if(document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+    var parent = document.getElementById('recent-posts');
+    var child = '<div class="recent-post-item" style="width:100%;height: auto"><div id="catalog_magnet"><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/深度学习/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">🤖 深度学习 (1)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/操作系统/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">🐧 操作系统 (6)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><a class="magnet_link_more"  href="https://hunterwarrior614.github.io/categories" style="flex:1;text-align: center;margin-bottom: 10px;">查看更多...</a></div></div>';
+    console.log('已挂载magnet')
+    parent.insertAdjacentHTML("afterbegin",child)}
+     </script><style>#catalog_magnet{flex-wrap: wrap;display: flex;width:100%;justify-content:space-between;padding: 10px 10px 0 10px;align-content: flex-start;}.magnet_item{flex-basis: calc(50% - 5px);background: #f2f2f2;margin-bottom: 10px;border-radius: 8px;transition: all 0.2s ease-in-out;}.magnet_item:hover{background: #b30070}.magnet_link_more{color:#555}.magnet_link{color:black}.magnet_link:hover{color:white}@media screen and (max-width: 600px) {.magnet_item {flex-basis: 100%;}}.magnet_link_context{display:flex;padding: 10px;font-size:16px;transition: all 0.2s ease-in-out;}.magnet_link_context:hover{padding: 10px 20px;}</style>
+    <style></style><script data-pjax>
+  function butterfly_footer_beautify_injector_config(){
+    var parent_div_git = document.getElementById('footer-wrap');
+    var item_html = '<div id="workboard"></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://www.xiaohongshu.com/user/profile/64f889d80000000004025d95?xsec_token=YBi3PR-3T81wvDpmtkmQlbImFcxayPVlg8qMw0SouA1_Y%3D&amp;xsec_source=app_share&amp;xhsshare=CopyLink&amp;appuid=64f889d80000000004025d95&amp;apptime=1751045227&amp;share_id=329450afb821445ca52895a817e5a394&amp;share_channel=copy_link" style="margin-inline:5px" data-title="博客框架为Hexo_v6.2.0" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-%E5%B0%8F%E7%BA%A2%E4%B9%A6-%23FF2442?logo=xiaohongshu" alt=""/></a><a class="github-badge" target="_blank" href="https://s21.ax1x.com/2025/06/28/pVmvpOx.jpg" style="margin-inline:5px" data-title="博客托管在GitHub Pages上" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-%E5%BE%AE%E4%BF%A1-%2307C160?logo=wechat" alt=""/></a><a class="github-badge" target="_blank" href="https://blog.csdn.net/2301_79780038?type=blog" style="margin-inline:5px" data-title="博客地址为GitHub Pages" title=""><img src="https://img.shields.io/badge/IT%E7%A4%BE%E5%8C%BA-CSDN-%23FC5531?logo=csdn" alt=""/></a></p>';
+    console.log('已挂载butterfly_footer_beautify')
+    parent_div_git.insertAdjacentHTML("beforeend",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_footer_beautify_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_footer_beautify_injector_config();
+  }
+  </script><script async src="/js/runtime.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"left","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body></html>

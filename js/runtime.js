@@ -21,11 +21,11 @@ function createtime() {
     let displayContent = "";
     if (hours < 18 && hours >= 9) {
         displayContent = `<div style="font-size:13px;font-weight:bold">
-                         哇！本站居然运行了 ${days} 天 ${hours} 小时 ${minutes} 分 ${seconds} 秒耶✌
+                         哇！本站居然运行了 ${days} 天 ${hours} 小时 ${minutes} 分 ${seconds} 秒耶
                          <i id="heartbeat" class='fas fa-heartbeat'></i></div>`;
     } else {
         displayContent = `<div style="font-size:13px;font-weight:bold">
-                         哇！本站居然运行了 ${days} 天 ${hours} 小时 ${minutes} 分 ${seconds} 秒耶✌ 
+                         哇！本站居然运行了 ${days} 天 ${hours} 小时 ${minutes} 分 ${seconds} 秒耶
                          <i id="heartbeat" class='fas fa-heartbeat'></i></div>`;
     }
     

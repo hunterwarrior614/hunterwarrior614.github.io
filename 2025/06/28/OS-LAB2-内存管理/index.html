@@ -1,0 +1,570 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>OS LAB2 内存管理 | HunterWarrior's blog</title><meta name="author" content="HunterWarrior"><meta name="copyright" content="HunterWarrior"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="思考题  Thinking 2.1 请根据上述说明，回答问题：在编写的 C 程序中，指针变量中存储的地址被视为虚拟地址，还是物理地址？MIPS 汇编程序中 lw 和 sw 指令使用的地址被视为虚拟地址，还是物理地址？  虚拟地址；虚拟地址。   Thinking 2.2 请思考下述两个问题： • 从可重用性的角度，阐述用宏来实现链表的好处。 • 查看实验环境中的&#x2F;usr&#x2F;i">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OS LAB2 内存管理">
+<meta property="og:url" content="https://hunterwarrior614.github.io/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="HunterWarrior&#39;s blog">
+<meta property="og:description" content="思考题  Thinking 2.1 请根据上述说明，回答问题：在编写的 C 程序中，指针变量中存储的地址被视为虚拟地址，还是物理地址？MIPS 汇编程序中 lw 和 sw 指令使用的地址被视为虚拟地址，还是物理地址？  虚拟地址；虚拟地址。   Thinking 2.2 请思考下述两个问题： • 从可重用性的角度，阐述用宏来实现链表的好处。 • 查看实验环境中的&#x2F;usr&#x2F;i">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://hunterwarrior614.github.io/images/gqj-2.jpg">
+<meta property="article:published_time" content="2025-06-28T06:56:46.000Z">
+<meta property="article:modified_time" content="2025-06-28T07:20:23.693Z">
+<meta property="article:author" content="HunterWarrior">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hunterwarrior614.github.io/images/gqj-2.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "OS LAB2 内存管理",
+  "url": "https://hunterwarrior614.github.io/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/",
+  "image": "https://hunterwarrior614.github.io/images/gqj-2.jpg",
+  "datePublished": "2025-06-28T06:56:46.000Z",
+  "dateModified": "2025-06-28T07:20:23.693Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "HunterWarrior",
+      "url": "https://hunterwarrior614.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://hunterwarrior614.github.io/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: HunterWarrior","link":"链接: ","source":"来源: HunterWarrior's blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'OS LAB2 内存管理',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="/css/universe.css"><!-- hexo injector head_end start --><link rel="stylesheet" href="https://www.fomal.cc/static/css/runtime.min.css" media="print" onload="this.media='all'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="/pace/flash.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg" style="background-color: #F0FFFD;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/gqj-2.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.ico" alt="Logo"><span class="site-name">HunterWarrior's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">OS LAB2 内存管理</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/comment/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">OS LAB2 内存管理</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-28T06:56:46.000Z" title="发表于 2025-06-28 14:56:46">2025-06-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-28T07:20:23.693Z" title="更新于 2025-06-28 15:20:23">2025-06-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.9k</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="思考题">思考题</h1>
+<blockquote>
+<p>Thinking 2.1 请根据上述说明，回答问题：在编写的 C
+程序中，指针变量中存储的地址被视为虚拟地址，还是物理地址？MIPS
+汇编程序中 lw 和 sw 指令使用的地址被视为虚拟地址，还是物理地址？</p>
+</blockquote>
+<p>虚拟地址；虚拟地址。</p>
+<hr />
+<blockquote>
+<p>Thinking 2.2 请思考下述两个问题：</p>
+<p>• 从可重用性的角度，阐述用宏来实现链表的好处。</p>
+<p>•
+查看实验环境中的/usr/include/sys/queue.h，了解其中单向链表与循环链表的实现，比较它们与本实验中使用的双向链表，分析三者在插入与删除操作上的性能差异。</p>
+</blockquote>
+<p><strong>Q1：</strong>通过宏定义对链表的操作进行封装，实现了代码复用，减少了代码量的同时便于代码的维护。</p>
+<p><strong>Q2：</strong></p>
+<ul>
+<li><code>/usr/include/sys/queue.h</code>
+的单向链表只能获取每一项的后一项，因此在插入与删除时都需要对链表进行遍历，时间复杂度为
+<span class="math inline"><em>O</em>(<em>n</em>)</span>；</li>
+<li><code>/usr/include/sys/queue.h</code>
+的循环链表既实现了双向链表，又维护了头尾指针，插入与删除时可以根据链表项直接获取其位置进行操作，并获取其前后项，时间复杂度为
+<span class="math inline"><em>O</em>(1)</span>；</li>
+<li>本实验中的双向链表在插入与删除操作时，可以根据链表项直接获取其位置，时间复杂度为
+<span
+class="math inline"><em>O</em>(1)</span>；但无法直接对链表尾部进行操作，需要遍历链表获取尾部项，时间复杂度为
+<span class="math inline"><em>O</em>(<em>n</em>)</span>。</li>
+</ul>
+<hr />
+<blockquote>
+<p>Thinking 2.3 请阅读 include/queue.h 以及 include/pmap.h,将 Page_list
+的结构梳理清楚，选择正确的展开结构。</p>
+</blockquote>
+<p><code>le_next</code> 是指向下一个元素的指针，因此类型为
+<code>Page *</code>；<code>le_prev</code> 是指向前一个元素的链表项的
+<code>le_next</code> 的指针，因此应为二级指针，类型为
+<code>Page **</code>。</p>
+<p>同时，<code>lh_first</code> 为 Page
+链表的头指针，因此类型为结构体指针而非结构体。</p>
+<p>综上，选择 C 结构：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Page_list</span> &#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">Page</span> *<span class="title">le_next</span>;</span></span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">Page</span> **<span class="title">le_prev</span>;</span></span><br><span class="line">        &#125; pp_link;</span><br><span class="line">        u_short pp_ref;</span><br><span class="line">    &#125; *lh_first;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr />
+<blockquote>
+<p>Thinking 2.4 请思考下面两个问题：</p>
+<p>• 请阅读上面有关 TLB
+的描述，从虚拟内存和多进程操作系统的实现角度，阐述 ASID 的必要性。</p>
+<p>• 请阅读 MIPS 4Kc 文档《MIPS32® 4K™ Processor Core Family Software
+User’s Manual》的 Section 3.3.1 与 Section 3.4，结合 ASID 段的位数，说明
+4Kc 中可容纳不同的地址空间的最大数量。</p>
+</blockquote>
+<p><strong>Q1：</strong></p>
+<ul>
+<li><strong>避免 TLB 频繁 Flush 带来的性能损耗。</strong>若不使用 ASID
+来标识不同的地址空间，则在进行进程切换时，需要完全冲刷
+TLB，否则残留的旧进程 TLB
+表项可能导致地址翻译错误（不同地址空间中，相同的虚拟地址可能映射到不同的物理地址）。而通过
+ASID 标识地址空间可以在访问 TLB 时进行 ASID
+匹配，以确保访问正确的地址空间，因此仅在必要时进行特定 TLB 表项的
+Flush，大大提高性能。</li>
+<li><strong>支持多进程并发的地址空间隔离。</strong>每个进程拥有独立的虚拟地址空间，ASID
+为每个进程分配唯一的标识符，确保 TLB 表项仅对匹配 ASID
+的进程可见。及时多进程使用相同的虚拟地址，也能通过 ASID
+区分物理映射，避免地址空间污染。</li>
+</ul>
+<p><strong>Q2：</strong>ASID 位数为 8 位，因此最多可容纳 <span
+class="math inline">2<sup>8</sup> = 256</span> 个地址空间。</p>
+<hr />
+<blockquote>
+<p>Thinking 2.5 请回答下述三个问题：</p>
+<p>•tlb_invalidate 和 tlb_out 的调用关系？</p>
+<p>•请用一句话概括 tlb_invalidate 的作用。</p>
+<p>•逐行解释 tlb_out 中的汇编代码。</p>
+</blockquote>
+<p><strong>Q1：</strong><code>tlb_invalidate</code> 调用
+<code>tlb_out</code>；</p>
+<p><strong>Q2：</strong>删除特定虚拟地址在 TLB 中的旧表项；</p>
+<p><strong>Q3：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">LEAF(tlb_out)	# 初始化tlb_out函数的相关信息，并标记函数的开头</span><br><span class="line">.set noreorder	# 不允许对接下来的代码进行重排序</span><br><span class="line">	mfc0    t0, CP0_ENTRYHI	# 保存EntryHi寄存器的旧值</span><br><span class="line">    mtc0    a0, CP0_ENTRYHI	# 将参数值（旧表项的Key）通过a0寄存器写入EntryHi寄存器</span><br><span class="line">	nop	# 因流水线设计架构原因，tlbp指令的前后都应各插入一个nop以解决数据冒险</span><br><span class="line">    tlbp	# 根据EntryHi中的Key查找TLB中相应的表项，并将该表项的索引存入Index寄存器（若未找到匹配表项，则Index最高位置1）</span><br><span class="line">    nop</span><br><span class="line">    mfc0    t1, CP0_INDEX	# 获取Index寄存器的值</span><br><span class="line">.set reorder	# 允许对接下来的代码进行重排序</span><br><span class="line">	bltz    t1, NO_SUCH_ENTRY	# 若Index寄存器的值小于0，也即TLB未找到匹配表项，则跳转到NO_SUCH_ENTRY处</span><br><span class="line">.set noreorder	# 不允许对接下来的代码进行重排序</span><br><span class="line">	mtc0    zero, CP0_ENTRYHI	# 接下来三条命令将EntryHi, EntryLo0和EntryLo1寄存器置零</span><br><span class="line">	mtc0    zero, CP0_ENTRYLO0</span><br><span class="line">	mtc0    zero, CP0_ENTRYLO1</span><br><span class="line">	nop</span><br><span class="line">	tlbwi	# 以Index寄存器中的值为索引，将EntryHi, EntryLo0和EntryLo1的值写入到索引指定的TLB表项中</span><br><span class="line"></span><br><span class="line">.set reorder	# 允许对接下来的代码进行重排序</span><br><span class="line"></span><br><span class="line">NO_SUCH_ENTRY:	# NO_SUCH_ENTRY标签处</span><br><span class="line">	mtc0    t0, CP0_ENTRYHI	# 将EntryHi寄存器的旧值写回</span><br><span class="line">	j       ra	# 跳转回去</span><br><span class="line">END(tlb_out)	# 标记tlb_out函数的结束，并记录其大小</span><br></pre></td></tr></table></figure>
+<hr />
+<blockquote>
+<p>Thinking 2.6 请结合 Lab2 开始的 CPU 访存流程与下图中的 Lab2
+用户函数部分，尝试将函数调用与 CPU 访存流程对应起来，思考函数调用与 CPU
+访存流程的关系。</p>
+</blockquote>
+<p><img src="\images\未命名绘图.drawio%20(1).png" /></p>
+<blockquote>
+<p>Thinking 2.7 从下述三个问题中任选其一回答：</p>
+<p>• 简单了解并叙述 X86 体系结构中的内存管理机制，比较 X86 和 MIPS
+在内存管理上的区别。</p>
+<p>• 简单了解并叙述 RISC-V 中的内存管理机制，比较 RISC-V 与 MIPS
+在内存管理上的区别。</p>
+<p>• 简单了解并叙述 LoongArch 中的内存管理机制，比较 LoongArch 与 MIPS
+在内存管理上的区别。</p>
+</blockquote>
+<p>LoongArch
+是龙芯自主研发的指令集架构，其内存管理机制在继承传统设计的基础上进行了多项创新，与
+MIPS 架构存在显著差异。</p>
+<ul>
+<li><p><strong>地址空间与分段设计</strong></p>
+<p>LoongArch 采用<strong>单一平面地址空间</strong>，摒弃了 MIPS
+的固定分段模式（如 kseg0、kseg1
+等），支持更大的物理寻址范围（如分支跳转偏移从 MIPS 的 64KB 扩展到
+1MB），减少了编译结果的指令条数和访存次数，提升内存访问效率。</p></li>
+<li><p><strong>TLB 与分页机制</strong></p>
+<p>LoongArch 的 TLB
+<strong>支持动态扩展</strong>，通过多级页表实现虚拟地址到物理地址的映射，并优化了
+TLB 的填充策略，减少因 TLB
+未命中导致的异常处理开销。同时引入<strong>更复杂的页表格式</strong>（如
+10 种指令格式），支持更大的立即数（最大 24
+位）和灵活的寻址方式，适应高性能计算需求。</p>
+<p>MIPS 的 TLB 条目包含
+ASID（地址空间标识符），支持多进程隔离，但条目数量有限（如 4Kc
+处理器仅有 16 个 JTLB 条目），易因频繁异常降低性能。且 MIPS
+采用<strong>二级页表结构</strong>，页目录和页表均为固定大小（如
+4KB），物理内存分配依赖伙伴算法和 Slab 分配器。</p></li>
+</ul>
+<blockquote>
+<p>Thinking A.1 在现代的 64 位系统中，提供了 64 位的字长，但实际上不是
+64 位页式存储系统。假设在 64 位系统中采用三级页表机制，页面大小
+4KB。由于 64 位系统中字长为 8B，且页目录也占用一页，因此页目录中有 512
+个页目录项，因此每级页表都需要 9 位。 因此在 64 位系统下，总共需要
+3×9+12=39 位就可以实现三级页表机制，并不需要 64 位。</p>
+<p>现考虑上述 39 位的三级页式存储系统，虚拟地址空间为 512
+GB，若三级页表的基地址为 <span
+class="math inline"><em>P</em><em>T</em><sub><em>b</em><em>a</em><em>s</em><em>e</em></sub></span>。请计算：</p>
+<p>•三级页表页目录的基地址。</p>
+<p>•映射到页目录自身的页目录项（自映射）</p>
+</blockquote>
+<ul>
+<li>三级页表中一个页目录项映射空间大小为 <span
+class="math inline">2<sup>18</sup><em>个</em>3<em>级</em><em>页</em><em>表</em><em>项</em> × 4<em>K</em><em>B</em> = 2<sup>30</sup><em>B</em></span>，页表空间大小为
+<span
+class="math inline">2<sup>27</sup> * 8<em>B</em> = 2<sup>30</sup><em>B</em></span>。页表空间所在位置对应到页目录的第
+<span
+class="math inline"><em>P</em><em>T</em><sub><em>b</em><em>a</em><em>s</em><em>e</em></sub></span>
+<code>&gt;&gt; 30</code> 项，也即页表空间中第 （<span
+class="math inline"><em>P</em><em>T</em><sub><em>b</em><em>a</em><em>s</em><em>e</em></sub></span>
+<code>&gt;&gt; 30</code>）_ <span
+class="math inline">2<sup>18</sup></span> 即 <span
+class="math inline"><em>P</em><em>T</em><sub><em>b</em><em>a</em><em>s</em><em>e</em></sub></span>
+<code>&gt;&gt; 12</code> 项，因此页目录基地址为 <span
+class="math inline"><em>P</em><em>T</em><sub><em>b</em><em>a</em><em>s</em><em>e</em></sub></span>
++ （<span
+class="math inline"><em>P</em><em>T</em><sub><em>b</em><em>a</em><em>s</em><em>e</em></sub></span>
+<code>&gt;&gt; 12</code>）_ <span class="math inline">8<em>B</em></span>
+即 <span
+class="math inline"><em>P</em><em>T</em><sub><em>b</em><em>a</em><em>s</em><em>e</em></sub></span>
++ <span
+class="math inline"><em>P</em><em>T</em><sub><em>b</em><em>a</em><em>s</em><em>e</em></sub></span>
+<code>&gt;&gt; 9</code>。</li>
+<li>第 <span
+class="math inline"><em>P</em><em>T</em><sub><em>b</em><em>a</em><em>s</em><em>e</em></sub></span>
+<code>&gt;&gt; 30</code> 项。</li>
+</ul>
+<h1 id="难点分析">难点分析</h1>
+<ol type="1">
+<li><p><code>ROUND(a,n)</code>、<code>ROUNDDOWN(a,n)</code></p>
+<p><code>kern/pmap.c</code> 中的 <code>alloc</code> 函数有一条语句
+<code>freemem = ROUND(freemem, align)</code>，这行代码的含义即找到
+<code>freemem</code> 之上最小的、按 <code>align</code>
+对齐的初始虚拟地址，中间未用到的地址空间<strong>全部放弃</strong>。实际上是找到了一段空闲的、起始地址与
+align 对齐的内存空间。</p>
+<p><code>ROUND(a,n)</code> 和 <code>ROUNDDOWN(a,n)</code> 都是定义在
+<code>include/types.h</code> 的宏，前者返回 <span
+class="math inline">$\lceil\frac{a}{n}\rceil n$</span>，后者返回 <span
+class="math inline">$\lfloor \frac{a}{n}\rfloor n$</span>，分别表示将 a
+按 n 向上对齐和向下对齐，要求 n 必须是 2 的非负整数次幂。</p></li>
+<li><p>页控制块（Page 结构体）与空闲链表</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// include/pmap.h</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="title function_">LIST_ENTRY</span><span class="params">(Page)</span> Page_LIST_entry_t;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Page</span> &#123;</span></span><br><span class="line">	Page_LIST_entry_t pp_link; <span class="comment">/*free list link*/</span></span><br><span class="line">	u_short pp_ref;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p><code>LIST_ENTRY(type)</code>
+作为一个特殊的类型出现，其本质是一个<strong>链表项</strong>，包括指向下一个元素的指针
+<code>le_next</code>，以及指向前一个元素链表项中的 <code>le_next</code>
+的指针 <code>le_prev</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// include/queue.h</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LIST_ENTRY(type)                                                                          \</span></span><br><span class="line"><span class="meta">	struct &#123;                                                                                   	  \</span></span><br><span class="line"><span class="meta">		struct type *le_next;  <span class="comment">/* next element */</span>                                         		  \</span></span><br><span class="line"><span class="meta">		struct type **le_prev; <span class="comment">/* address of previous next element */</span>                    		  \</span></span><br><span class="line"><span class="meta">	&#125;</span></span><br></pre></td></tr></table></figure></li>
+<li><p><code>pp_ref</code>
+对应这一页物理内存被引用的次数，它等于有多少虚拟页映射到该物理页。</p></li>
+</ul>
+<p><img src="\images\屏幕截图%202025-04-10%20104813.png" /></p>
+<p>上图中的 <code>le_next</code> 与 <code>le_prev</code>
+组成的结构体即为链表项（<code>field</code> 域，页控制块中为
+<code>pp_link</code>），链表项与 <code>data</code> 域（页控制块中为
+<code>u_short pp_ref</code>）组成的 <code>Page</code>
+结构体即为页控制块。</p></li>
+<li><p>虚拟地址与物理地址的转换</p>
+<p>在实际程序中，访存、跳转等指令以及用于取指的 PC
+寄存器中的访存目标地址都是==<strong>虚拟地址</strong>==。C
+程序中经常通过对指针解引用来进行访存，其中指针的值也会被视为==<strong>虚拟地址</strong>==，经过编译后生成相应的访存指令（在
+C 程序中，一定要<strong>使用虚拟地址进行内存操作</strong>！如
+<code>memset</code>）。</p>
+<p><code>include/pmap.h</code> 中关于 VA 与 PA 转换的相关函数：</p>
+<ul>
+<li><p><code>page2ppn</code> 用于返回给定页控制块在 <code>pages</code>
+数组中的索引。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> u_long <span class="title function_">page2ppn</span><span class="params">(<span class="keyword">struct</span> Page *pp)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> pp - pages;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p><code>page2pa</code>
+用于返回给定页控制块对应（控制）的<strong>物理页面</strong>的起始地址（<strong>物理地址</strong>）。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> u_long <span class="title function_">page2pa</span><span class="params">(<span class="keyword">struct</span> Page *pp)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> page2ppn(pp) &lt;&lt; PGSHIFT;	<span class="comment">// PGSHIFT = 12，定义在include/mmu.h中</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p><code>pa2page</code>
+用于返回给定<strong>物理地址</strong>所在页对应的页控制块。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="keyword">struct</span> Page *<span class="title function_">pa2page</span><span class="params">(u_long pa)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (PPN(pa) &gt;= npage) &#123;		<span class="comment">// PPN(pa)定义在include/mmu.h中，值为(((u_long)(pa)) &gt;&gt; PGSHIFT)，</span></span><br><span class="line">        						<span class="comment">// 用于返回物理地址pa所在的物理页面的页号</span></span><br><span class="line">        panic(<span class="string">&quot;pa2page called with invalid pa: %x&quot;</span>, pa);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> &amp;pages[PPN(pa)];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p><code>page2kva</code>
+用于返回给定页控制块对应（控制）的<strong>物理页面</strong>的起始地址对应的<strong>虚拟地址</strong>（kseg0
+中）。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> u_long <span class="title function_">page2kva</span><span class="params">(<span class="keyword">struct</span> Page *pp)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> KADDR(page2pa(pp));	<span class="comment">// KADDR定义在include/mmu.h中，用于返回物理地址pa在kseg0中对应的虚拟地址</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p><code>va2pa</code>
+用于返回在给定的二级页表结构中<strong>虚拟地址映射的物理地址</strong>（若找不到映射返回~0）。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> u_long <span class="title function_">va2pa</span><span class="params">(Pde *pgdir, u_long va)</span> &#123;</span><br><span class="line">    Pte *p;</span><br><span class="line"></span><br><span class="line">    pgdir = &amp;pgdir[PDX(va)];</span><br><span class="line">    <span class="keyword">if</span> (!(*pgdir &amp; PTE_V)) &#123;</span><br><span class="line">        <span class="keyword">return</span> ~<span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    p = (Pte *)KADDR(PTE_ADDR(*pgdir));</span><br><span class="line">    <span class="keyword">if</span> (!(p[PTX(va)] &amp; PTE_V)) &#123;</span><br><span class="line">        <span class="keyword">return</span> ~<span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> PTE_ADDR(p[PTX(va)]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>此外在 <code>include/mmu.h</code>
+中也定义了一些宏用于地址转换：<code>PPN(pa)</code>、<code>VPN(va)</code>、<code>PADDR(kva)</code>、<code>KADDR(pa)</code>，以及
+<code>PDX(va)</code> 和 <code>PTX(va)</code> 分别用于获取虚拟地址 va
+的页目录（一级页表）索引和页表（二级页表）索引，<code>PTE_ADDR(pte)</code>
+用于获取页表项中的物理页号。</p>
+<p>在实际编程中，需要根据情况将物理（虚拟）地址转换为对应的虚拟（物理）地址才能使用。</p></li>
+<li><p>对二级页表结构进行处理的有关函数</p>
+<p><img src="\images\image-20250410132555362.png" alt="image-20250410132555362" style="zoom:50%;" /></p>
+<ul>
+<li><strong>二级页表检索函数</strong>
+<code>int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte)</code>：该函数将一级页表基地址
+<code>pgdir</code> 对应的两级页表结构中 va
+虚拟地址所在的二级页表项的指针存储在 <code>ppte</code>
+指向的空间上。如果 <code>create</code> 不为 0
+且对应的二级页表不存在，则会使用 <code>page_alloc</code> 函数分配一
+页物理内存用于存放二级页表，如果分配失败则返回错误码。</li>
+<li><strong>增加地址映射函数</strong>
+<code>int page_insert(Pde *pgdir, u_int asid, struct Page *pp, u_long va, u_int perm)</code>：作用是将一级页表基地址
+<code>pgdir</code> 对应的两级页表结构中虚拟地址 va 映射到页控制块
+<code>pp</code>
+对应的物理页面，并将页表项权限为设置为<code>perm</code>。</li>
+<li><strong>寻找映射的物理地址函数</strong>
+<code>struct Page *page_lookup(Pde *pgdir, u_long va, Pte **ppte)</code>：作用是返回一级页表基地址
+<code>pgdir</code> 对应的两级页表结构中虚拟地址 va
+映射的物理页面的页控制块，同时将 <code>ppte</code>
+指向的空间设为对应的二级页表项地址。</li>
+<li><strong>取消地址映射函数</strong>
+<code>void page_remove(Pde *pgdir, u_int asid, u_long va)</code>：作用是删除一级页表基地址
+<code>pgdir</code> 对应的两级页表结构中虚拟地址 va
+对物理地址的映射。如果存在这样的映射，那么对应物理页面的引用次数会减少一次。</li>
+</ul></li>
+<li><p>页表项、TLB 和 EntryHi、EntryLo 寄存器的关系</p>
+<center class="half">
+<p><img src="\images\image-20250410133723660.png" alt="image-20250410133723660" style="zoom: 30%;" />
+<img src="\images\image-20250410134142311.png" alt="image-20250410134142311" style="zoom:30%;" /></p>
+<p>每个页表项由 32 位组成，包括 20 位物理页号以及 12 位标志位。其中，12
+位标志位包含高 6 位硬件标志位与低 6 位软件标志位。高 6
+位硬件标志位用于存入 EntryLo 寄存器中，供硬件使用。低 6
+位软件标志位不会被存入 TLB 中，仅供软件使用。</p>
+<p>当页表项需要借助 EntryLo 寄存器填入 TLB 时，<strong>页表项会被右移 6
+位</strong>，移出所有软件标志位，仅将高 20 位物理页号以及 6
+位硬件标志位填入 TLB 使用。</p>
+<p>EntryHi、EntryLo0、EntryLo1 都是 CP0 中的寄存器，他们只是分别对应到
+TLB 的 Key 与两组 Data，并不是 TLB 本身。 其中 EntryLo0、EntryLo1
+拥有完全相同的位结构，EntryLo0 存储 Key 对应的偶页而 EntryLo1 存储 Key
+对应的奇页。</p>
+<p><img src="\images\image-20250410134419376.png" alt="image-20250410134419376" style="zoom: 60%;" /></p></li>
+<li><p>TLB Miss 时重填过程（见思考题 2.6）</p></li>
+</ol>
+<h1 id="实验体会">实验体会</h1>
+<ul>
+<li>需要掌握物理内存管理的方法，即通过页控制块来管理对应的物理页面。需要掌握页控制块的结构以及空闲页面链表创建。</li>
+<li>熟记虚拟地址与物理地址转换的各种宏。在编程时，一定要正确地使用虚拟/物理地址。例如在
+C 程序中，对内存空间操作时务必使用虚拟地址。</li>
+<li>掌握虚拟内存管理的方法，熟悉页表相关函数的功能与使用方法。熟记页目录与二级页表的结构、页表项的构成。</li>
+<li>掌握用户访存流程，熟悉访存过程中 TLB
+重填的步骤，理清其中各个函数的作用。熟记 TLB 的结构以及 CP0
+中相关寄存器的作用，尤其是 EntryHi 和 EntryLo 寄存器，理清它们与
+TLB、页表之间的关系。</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://hunterwarrior614.github.io">HunterWarrior</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://hunterwarrior614.github.io/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">https://hunterwarrior614.github.io/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://hunterwarrior614.github.io" target="_blank">HunterWarrior's blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/gqj-2.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/06/28/OS-LAB1-%E5%86%85%E6%A0%B8%E3%80%81%E5%90%AF%E5%8A%A8%E5%92%8Cprintf/" title="OS LAB1 内核、启动和printf"><img class="cover" src="/images/gqj-1.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">OS LAB1 内核、启动和printf</div></div><div class="info-2"><div class="info-item-1">思考题   Thinking 1.1 在阅读附录中的编译链接详解以及本章内容后，尝试分别使用实验环境中的原生 x86 工具链（gcc、ld、readelf、objdump 等）和 MIPS 交叉编译工具链（带有 mips-linux-gnu- 前缀，如 mips-linux-gnu-gcc、mips-linux-gnu-ld），重复其中的编译和解析过程，观察相应的结果，并解释其中向 objdump 传入的参数的含义。  不同工具链的比较 使用 gcc -E hello.c &gt; ori_prep.txt 和 mips-linux-gnu-gcc -E hello.c &gt; cross_prep.txt，获取原生 x86 工具链和 MIPS 交叉编译工具链对于 hello.c 的预处理结果，并通过命令 diff ori_prep.txt cross_prep.txt -y 比较两个预处理结果的不同。可以看到不同工具链使用的工具路径不同、对某些变量的定义不同等。 工具路径不同： 1234567891011# 0...</div></div></div></a><a class="pagination-related" href="/2025/06/28/OS-LAB3-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BC%82%E5%B8%B8/" title="OS LAB3 进程与异常"><img class="cover" src="/images/gqj-3.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">OS LAB3 进程与异常</div></div><div class="info-2"><div class="info-item-1">思考题  Thinking 3.1 请结合 MOS 中的页目录自映射应用解释代码中 e-&gt;env_pgdir[PDX(UVPT)] = PADDR(e-&gt;env_pgdir) | PTE_V 的含义。  一个页目录项映射一个含有 1K 个页表项的 4KB 页表，每一个页表映射一个 4MB 大小的虚拟地址空间。由于页目录映射的 4MB 空间就是二级页表结构所在的 4MB 空间，而用户二级页表结构存储在虚拟地址空间中的 UVPT 至 ULIM 处的 4MB 空间 ，因此页目录相当于第 PDX(UVPT)（取高 10 位）个页表，也就位于第 PDX(UVPT) 个页目录项，其物理地址 PADDR(e-&gt;env_pgdir) 存储在这个页目录项中。  Thinking 3.2 elf_load_seg 以函数指针的形式，接受外部自定义的回调函数 map_page。请你找到与之相关的 data 这一参数在此处的来源，并思考它的作用。没有这个参数可不可以？为什么？  int elf_load_seg(Elf32_Phdr *ph,...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">HunterWarrior</div><div class="author-info-description">行而不辍，未来可期！</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/hunterwarrior614"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E9%A2%98"><span class="toc-number">1.</span> <span class="toc-text">思考题</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9A%BE%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">难点分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%BD%93%E4%BC%9A"><span class="toc-number">3.</span> <span class="toc-text">实验体会</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告"><img src="/images/swap.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS_Challenge_SWAP 实现报告"/></a><div class="content"><a class="title" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告">OS_Challenge_SWAP 实现报告</a><time datetime="2025-06-28T07:12:08.000Z" title="发表于 2025-06-28 15:12:08">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="OS LAB5 文件系统"><img src="/images/gqj-5.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB5 文件系统"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="OS LAB5 文件系统">OS LAB5 文件系统</a><time datetime="2025-06-28T06:57:37.000Z" title="发表于 2025-06-28 14:57:37">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB4-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8Efork/" title="OS LAB4 系统调用与fork"><img src="/images/gqj-4.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB4 系统调用与fork"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB4-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8Efork/" title="OS LAB4 系统调用与fork">OS LAB4 系统调用与fork</a><time datetime="2025-06-28T06:57:24.000Z" title="发表于 2025-06-28 14:57:24">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB3-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BC%82%E5%B8%B8/" title="OS LAB3 进程与异常"><img src="/images/gqj-3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB3 进程与异常"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB3-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BC%82%E5%B8%B8/" title="OS LAB3 进程与异常">OS LAB3 进程与异常</a><time datetime="2025-06-28T06:57:07.000Z" title="发表于 2025-06-28 14:57:07">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="OS LAB2 内存管理"><img src="/images/gqj-2.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB2 内存管理"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="OS LAB2 内存管理">OS LAB2 内存管理</a><time datetime="2025-06-28T06:56:46.000Z" title="发表于 2025-06-28 14:56:46">2025-06-28</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/images/gqj-2.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 By HunterWarrior</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://hunterwarrior.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = (el = document, path = location.pathname) => {
+    twikoo.init({
+      el: el.querySelector('#twikoo-wrap'),
+      envId: 'https://hunterwarrior.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      },
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || path
+    })
+
+    
+
+    isShuoshuo && (window.shuoshuoComment.destroyTwikoo = () => {
+      if (el.children.length) {
+        el.innerHTML = ''
+        el.classList.add('no-comment')
+      }
+    })
+  }
+
+  const loadTwikoo = (el, path) => {
+    if (typeof twikoo === 'object') setTimeout(() => init(el, path), 0)
+    else btf.getScript('https://cdn.jsdelivr.net/npm/twikoo/dist/twikoo.all.min.js').then(() => init(el, path))
+  }
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Twikoo'
+      ? window.shuoshuoComment = { loadComment: loadTwikoo }
+      : window.loadOtherComment = loadTwikoo
+    return
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --> <script data-pjax>if(document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+    var parent = document.getElementById('recent-posts');
+    var child = '<div class="recent-post-item" style="width:100%;height: auto"><div id="catalog_magnet"><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/深度学习/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">🤖 深度学习 (1)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/操作系统/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">🐧 操作系统 (6)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><a class="magnet_link_more"  href="https://hunterwarrior614.github.io/categories" style="flex:1;text-align: center;margin-bottom: 10px;">查看更多...</a></div></div>';
+    console.log('已挂载magnet')
+    parent.insertAdjacentHTML("afterbegin",child)}
+     </script><style>#catalog_magnet{flex-wrap: wrap;display: flex;width:100%;justify-content:space-between;padding: 10px 10px 0 10px;align-content: flex-start;}.magnet_item{flex-basis: calc(50% - 5px);background: #f2f2f2;margin-bottom: 10px;border-radius: 8px;transition: all 0.2s ease-in-out;}.magnet_item:hover{background: #b30070}.magnet_link_more{color:#555}.magnet_link{color:black}.magnet_link:hover{color:white}@media screen and (max-width: 600px) {.magnet_item {flex-basis: 100%;}}.magnet_link_context{display:flex;padding: 10px;font-size:16px;transition: all 0.2s ease-in-out;}.magnet_link_context:hover{padding: 10px 20px;}</style>
+    <style></style><script data-pjax>
+  function butterfly_footer_beautify_injector_config(){
+    var parent_div_git = document.getElementById('footer-wrap');
+    var item_html = '<div id="workboard"></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://www.xiaohongshu.com/user/profile/64f889d80000000004025d95?xsec_token=YBi3PR-3T81wvDpmtkmQlbImFcxayPVlg8qMw0SouA1_Y%3D&amp;xsec_source=app_share&amp;xhsshare=CopyLink&amp;appuid=64f889d80000000004025d95&amp;apptime=1751045227&amp;share_id=329450afb821445ca52895a817e5a394&amp;share_channel=copy_link" style="margin-inline:5px" data-title="博客框架为Hexo_v6.2.0" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-%E5%B0%8F%E7%BA%A2%E4%B9%A6-%23FF2442?logo=xiaohongshu" alt=""/></a><a class="github-badge" target="_blank" href="https://s21.ax1x.com/2025/06/28/pVmvpOx.jpg" style="margin-inline:5px" data-title="博客托管在GitHub Pages上" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-%E5%BE%AE%E4%BF%A1-%2307C160?logo=wechat" alt=""/></a><a class="github-badge" target="_blank" href="https://blog.csdn.net/2301_79780038?type=blog" style="margin-inline:5px" data-title="博客地址为GitHub Pages" title=""><img src="https://img.shields.io/badge/IT%E7%A4%BE%E5%8C%BA-CSDN-%23FC5531?logo=csdn" alt=""/></a></p>';
+    console.log('已挂载butterfly_footer_beautify')
+    parent_div_git.insertAdjacentHTML("beforeend",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_footer_beautify_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_footer_beautify_injector_config();
+  }
+  </script><script async src="/js/runtime.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"left","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body></html>
