@@ -1,0 +1,402 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>不同方式查看CUDA版本的含义 | HunterWarrior's blog</title><meta name="author" content="HunterWarrior"><meta name="copyright" content="HunterWarrior"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="最近在给深度学习项目搭建环境时，遇到了不得不使用 CUDA 11.8 的情况，而我在通过不同方式查看自己 CUDA 版本时发现了不同版本号，产生了诸多疑惑（甚至差点卸载了 CUDA 重装）。经过一番探索以及向d老师寻求帮助后，终于理清了他们的关系，遂写下此文以帮助遇到同样问题的追光者们~（部分内容引用自DeepSeek，如有错误之处欢迎指出！）  nvcc -V 该方式显示的是当前环境">
+<meta property="og:type" content="article">
+<meta property="og:title" content="不同方式查看CUDA版本的含义">
+<meta property="og:url" content="https://hunterwarrior614.github.io/2025/06/26/%E4%B8%8D%E5%90%8C%E6%96%B9%E5%BC%8F%E6%9F%A5%E7%9C%8BCUDA%E7%89%88%E6%9C%AC%E7%9A%84%E5%90%AB%E4%B9%89/index.html">
+<meta property="og:site_name" content="HunterWarrior&#39;s blog">
+<meta property="og:description" content="最近在给深度学习项目搭建环境时，遇到了不得不使用 CUDA 11.8 的情况，而我在通过不同方式查看自己 CUDA 版本时发现了不同版本号，产生了诸多疑惑（甚至差点卸载了 CUDA 重装）。经过一番探索以及向d老师寻求帮助后，终于理清了他们的关系，遂写下此文以帮助遇到同样问题的追光者们~（部分内容引用自DeepSeek，如有错误之处欢迎指出！）  nvcc -V 该方式显示的是当前环境">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://hunterwarrior614.github.io/images/cuda.jpg">
+<meta property="article:published_time" content="2025-06-25T17:19:28.000Z">
+<meta property="article:modified_time" content="2025-06-27T15:15:16.970Z">
+<meta property="article:author" content="HunterWarrior">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hunterwarrior614.github.io/images/cuda.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "不同方式查看CUDA版本的含义",
+  "url": "https://hunterwarrior614.github.io/2025/06/26/%E4%B8%8D%E5%90%8C%E6%96%B9%E5%BC%8F%E6%9F%A5%E7%9C%8BCUDA%E7%89%88%E6%9C%AC%E7%9A%84%E5%90%AB%E4%B9%89/",
+  "image": "https://hunterwarrior614.github.io/images/cuda.jpg",
+  "datePublished": "2025-06-25T17:19:28.000Z",
+  "dateModified": "2025-06-27T15:15:16.970Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "HunterWarrior",
+      "url": "https://hunterwarrior614.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://hunterwarrior614.github.io/2025/06/26/%E4%B8%8D%E5%90%8C%E6%96%B9%E5%BC%8F%E6%9F%A5%E7%9C%8BCUDA%E7%89%88%E6%9C%AC%E7%9A%84%E5%90%AB%E4%B9%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: HunterWarrior","link":"链接: ","source":"来源: HunterWarrior's blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '不同方式查看CUDA版本的含义',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="/css/universe.css"><!-- hexo injector head_end start --><link rel="stylesheet" href="https://www.fomal.cc/static/css/runtime.min.css" media="print" onload="this.media='all'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="/pace/flash.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg" style="background-color: #F0FFFD;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/cuda.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.ico" alt="Logo"><span class="site-name">HunterWarrior's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">不同方式查看CUDA版本的含义</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">不同方式查看CUDA版本的含义</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-25T17:19:28.000Z" title="发表于 2025-06-26 01:19:28">2025-06-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-27T15:15:16.970Z" title="更新于 2025-06-27 23:15:16">2025-06-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1k</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>最近在给深度学习项目搭建环境时，遇到了不得不使用 CUDA 11.8
+的情况，而我在通过不同方式查看自己 CUDA
+版本时发现了不同版本号，产生了诸多疑惑（甚至差点卸载了 CUDA
+重装）。经过一番探索以及向d老师寻求帮助后，终于理清了他们的关系，遂写下此文以帮助遇到同样问题的追光者们~（部分内容引用自DeepSeek，如有错误之处欢迎指出！）</p>
+<ol type="1">
+<li><p><code>nvcc -V</code></p>
+<p>该方式显示的是<strong>当前环境下</strong> <code>nvcc</code> 对应的
+CUDA 工具包（<strong>CUDA Toolkit</strong>）版本（如下面的
+<code>cuda_12.0</code> 表示 CUDA Toolkit 版本为12.0）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nvcc: NVIDIA (R) Cuda compiler driver</span><br><span class="line">Copyright (c) 2005-2023 NVIDIA Corporation</span><br><span class="line">Built on Fri_Jan__6_16:45:21_PST_2023</span><br><span class="line">Cuda compilation tools, release 12.0, V12.0.140</span><br><span class="line">Build cuda_12.0.r12.0/compiler.32267302_0</span><br></pre></td></tr></table></figure>
+<p>对于<strong>当前环境下的CUDA Toolkit版本</strong>，有这几种情况：</p>
+<ul>
+<li>处于虚拟环境中，且该虚拟环境有 cuda-nvcc：那么输出的版本就是该环境下
+CUDA Toolkit 版本；</li>
+<li>处于虚拟环境中，但是该虚拟环境中没有安装 cuda-nvcc：那么输出的是系统
+CUDA Toolkit 版本；</li>
+<li>无环境（base 环境）情况下，输出的是<strong>系统</strong> CUDA
+Toolkit 版本。</li>
+</ul>
+<p>每种情况下，运行 <code>which nvcc</code> 输出的也是相应的
+<code>nvcc</code> 的位置。</p>
+<hr />
+<p>为了深刻理解 <code>nvcc</code> 与 CUDA
+的关系，在此阐述一下他们的定义。</p>
+<ul>
+<li>CUDA <strong>是什么？</strong> CUDA（Compute Unified Device
+Architecture）是 NVIDIA
+推出的<strong>并行计算平台和编程模型</strong>，允许开发者直接利用 GPU
+进行通用计算（如深度学习、科学计算等）。其由 <strong>CUDA
+工具包（Toolkit）</strong>、CUDA 驱动和 CUDA 运行时库等组成。</li>
+<li><code>nvcc</code> <strong>是什么？</strong> <code>nvcc</code>
+（NVIDIA CUDA Compiler）是 CUDA Toolkit 中的编译器，专门用于编译 CUDA
+代码（<code>.cu</code> 文件）。</li>
+<li><code>nvcc</code> 与 CUDA 的<strong>关系</strong>
+<ul>
+<li><code>nvcc</code> 是 CUDA Toolkit 的一部分。安装 CUDA Toolkit
+时，会默认安装 nvcc；</li>
+<li><code>nvcc</code> 依赖 CUDA Toolkit。其行为受 CUDA Toolkit
+版本的控制；</li>
+<li><code>nvcc</code> 不直接依赖显卡驱动。编译代码时只需 CUDA
+工具包，但生成的程序运行时需要匹配的 NVIDIA 驱动。</li>
+</ul></li>
+</ul></li>
+<li><p><code>torch.version.cuda</code></p>
+<p>在虚拟环境中，运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># .venv1</span></span><br><span class="line">Python 3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0] on linux</span><br><span class="line">Type <span class="string">&quot;help&quot;</span>, <span class="string">&quot;copyright&quot;</span>, <span class="string">&quot;credits&quot;</span> or <span class="string">&quot;license&quot;</span> <span class="keyword">for</span> more information.</span><br><span class="line">&gt;&gt;&gt; import torch</span><br><span class="line">&gt;&gt;&gt; <span class="built_in">print</span>(torch.version.cuda)</span><br><span class="line">11.8</span><br></pre></td></tr></table></figure>
+<p>输出的 11.8 表示<strong>当前环境下实际使用的 CUDA 版本</strong>。
+当我在另一个环境运行时，显示的就是另一个环境的 CUDA 版本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># .venv2</span></span><br><span class="line">Python 3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0] on linux</span><br><span class="line">Type <span class="string">&quot;help&quot;</span>, <span class="string">&quot;copyright&quot;</span>, <span class="string">&quot;credits&quot;</span> or <span class="string">&quot;license&quot;</span> <span class="keyword">for</span> more information.</span><br><span class="line">&gt;&gt;&gt; import torch</span><br><span class="line">&gt;&gt;&gt; <span class="built_in">print</span>(torch.version.cuda)</span><br><span class="line">12.4</span><br></pre></td></tr></table></figure>
+<hr />
+<p>由此可见，每个虚拟环境独立管理 Python 包。在一个环境中安装 PyTorch
+for CUDA 11.8，不会影响其他环境中已安装的 PyTorch（如 CUDA 12.4 版本）。
+并且<strong>需要注意</strong>的是，现在的 PyTorch 的预编译包（通过
+<code>pip</code> 或 <code>conda</code> 安装）会自带与 CUDA
+版本对应的运行时库（如 cuDNN、cuBLAS
+等），且这些库仅在该虚拟环境中生效，不会干扰系统全局或其他环境中的
+CUDA。</p></li>
+<li><p><code>nvidia-smi</code></p>
+<p>下图中 <code>CUDA Version: 12.4</code> 表示当前安装的 NVIDIA
+驱动版本<strong>支持的最高 CUDA Toolkit
+版本，并非当前版本</strong>。说明我的 NVIDIA 驱动可以支持 CUDA Toolkit
+<strong>12.4 及以下</strong>的版本，即向下兼容。</p>
+<p><img src="/images/505992d68efa53d7ca7295d091992482.png" /></p>
+<p>注：<strong>PyTorch 实际依赖的是 NVIDIA 驱动</strong>。PyTorch 通过
+NVIDIA 驱动与 GPU 通信。只要驱动版本足够新（如支持 CUDA 12.0
+的驱动通常也兼容 CUDA 11.8），不同 CUDA 版本的 PyTorch
+均可运行。</p></li>
+</ol>
+<p><mark><strong>总结一下：</strong></mark></p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 46%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: center;"><strong>命令</strong></th>
+<th style="text-align: center;"><strong>显示内容</strong></th>
+<th style="text-align: center;"><strong>主要用途</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><code>nvcc -V</code></td>
+<td style="text-align: center;">系统中安装的 CUDA Toolkit 版本</td>
+<td style="text-align: center;">确认编译 CUDA 代码时的工具包版本</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>torch.version.cuda</code></td>
+<td style="text-align: center;">当前环境中 Pytorch 实际使用的 CUDA
+运行时版本</td>
+<td style="text-align: center;">确认深度学习框架的 CUDA 环境</td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>nvidia-smi</code></td>
+<td style="text-align: center;">驱动支持的最高 CUDA Toolkit 版本</td>
+<td style="text-align: center;">确认驱动兼容性</td>
+</tr>
+</tbody>
+</table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://hunterwarrior614.github.io">HunterWarrior</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://hunterwarrior614.github.io/2025/06/26/%E4%B8%8D%E5%90%8C%E6%96%B9%E5%BC%8F%E6%9F%A5%E7%9C%8BCUDA%E7%89%88%E6%9C%AC%E7%9A%84%E5%90%AB%E4%B9%89/">https://hunterwarrior614.github.io/2025/06/26/%E4%B8%8D%E5%90%8C%E6%96%B9%E5%BC%8F%E6%9F%A5%E7%9C%8BCUDA%E7%89%88%E6%9C%AC%E7%9A%84%E5%90%AB%E4%B9%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://hunterwarrior614.github.io" target="_blank">HunterWarrior's blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/cuda.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/06/28/P3-CPU%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3/" title="P3 CPU设计文档"><img class="cover" src="/images/xh-1.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">P3 CPU设计文档</div></div><div class="info-2"><div class="info-item-1">设计草稿 设计要求  处理器为 32 位单周期处理器，应支持的指令集为：add, sub, ori, lw, sw, beq, lui, nop，其中：  nop 为空指令，机器码 0x00000000，不进行任何有效行为（修改寄存器等）。 add, sub 按无符号加减法处理（不考虑溢出）。  需要采用模块化和层次化设计。顶层有效的驱动信号要求包括且仅包括异步复位信号 reset（clk 请使用内置时钟模块）。  可以将微体系结构分为两个相互作用的部分：数据通路(datapath)和控制(control)。 先根据应实现的指令对功能部件进行设计与搭建，然后再对各个功能部件进行连接，形成完整的数据通路。 数据通路搭建完毕后，再构造控制器，以根据读取的指令产生相应的控制信号。  数据通路 1 数据通路模块定义 先从包含状态元件的硬件开始，然后在这些存储组件之间增加组合逻辑基于当前状态计算新的状态。 1.1 程序计数器（PC）   32 位寄存器。输出 PC...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">HunterWarrior</div><div class="author-info-description">行而不辍，未来可期！</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/hunterwarrior614"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎大家来到我的博客！如有文章内容错误或建议，欢迎在评论区留言（不过评论区暂时无法使用）。</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告"><img src="/images/swap.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS_Challenge_SWAP 实现报告"/></a><div class="content"><a class="title" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告">OS_Challenge_SWAP 实现报告</a><time datetime="2025-06-28T07:12:08.000Z" title="发表于 2025-06-28 15:12:08">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="OS LAB5 文件系统"><img src="/images/gqj-5.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB5 文件系统"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="OS LAB5 文件系统">OS LAB5 文件系统</a><time datetime="2025-06-28T06:57:37.000Z" title="发表于 2025-06-28 14:57:37">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB4-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8Efork/" title="OS LAB4 系统调用与fork"><img src="/images/gqj-4.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB4 系统调用与fork"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB4-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8Efork/" title="OS LAB4 系统调用与fork">OS LAB4 系统调用与fork</a><time datetime="2025-06-28T06:57:24.000Z" title="发表于 2025-06-28 14:57:24">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB3-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BC%82%E5%B8%B8/" title="OS LAB3 进程与异常"><img src="/images/gqj-3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB3 进程与异常"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB3-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BC%82%E5%B8%B8/" title="OS LAB3 进程与异常">OS LAB3 进程与异常</a><time datetime="2025-06-28T06:57:07.000Z" title="发表于 2025-06-28 14:57:07">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="OS LAB2 内存管理"><img src="/images/gqj-2.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB2 内存管理"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB2-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="OS LAB2 内存管理">OS LAB2 内存管理</a><time datetime="2025-06-28T06:56:46.000Z" title="发表于 2025-06-28 14:56:46">2025-06-28</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/images/cuda.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 By HunterWarrior</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://hunterwarrior-twikoo.hf.space',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = (el = document, path = location.pathname) => {
+    twikoo.init({
+      el: el.querySelector('#twikoo-wrap'),
+      envId: 'https://hunterwarrior-twikoo.hf.space',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      },
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || path
+    })
+
+    
+
+    isShuoshuo && (window.shuoshuoComment.destroyTwikoo = () => {
+      if (el.children.length) {
+        el.innerHTML = ''
+        el.classList.add('no-comment')
+      }
+    })
+  }
+
+  const loadTwikoo = (el, path) => {
+    if (typeof twikoo === 'object') setTimeout(() => init(el, path), 0)
+    else btf.getScript('https://cdn.jsdelivr.net/npm/twikoo/dist/twikoo.all.min.js').then(() => init(el, path))
+  }
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Twikoo'
+      ? window.shuoshuoComment = { loadComment: loadTwikoo }
+      : window.loadOtherComment = loadTwikoo
+    return
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --> <script data-pjax>if(document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+    var parent = document.getElementById('recent-posts');
+    var child = '<div class="recent-post-item" style="width:100%;height: auto"><div id="catalog_magnet"><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/深度学习/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">🤖 深度学习 (1)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/操作系统/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">🐧 操作系统 (6)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/面向对象编程/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">💻 面向对象编程 (2)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/计算机组成/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">⚙️ 计算机组成 (5)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><a class="magnet_link_more"  href="https://hunterwarrior614.github.io/categories" style="flex:1;text-align: center;margin-bottom: 10px;">查看更多...</a></div></div>';
+    console.log('已挂载magnet')
+    parent.insertAdjacentHTML("afterbegin",child)}
+     </script><style>#catalog_magnet{flex-wrap: wrap;display: flex;width:100%;justify-content:space-between;padding: 10px 10px 0 10px;align-content: flex-start;}.magnet_item{flex-basis: calc(50% - 5px);background: #f2f2f2;margin-bottom: 10px;border-radius: 8px;transition: all 0.2s ease-in-out;}.magnet_item:hover{background: #b30070}.magnet_link_more{color:#555}.magnet_link{color:black}.magnet_link:hover{color:white}@media screen and (max-width: 600px) {.magnet_item {flex-basis: 100%;}}.magnet_link_context{display:flex;padding: 10px;font-size:16px;transition: all 0.2s ease-in-out;}.magnet_link_context:hover{padding: 10px 20px;}</style>
+    <style></style><script data-pjax>
+  function butterfly_footer_beautify_injector_config(){
+    var parent_div_git = document.getElementById('footer-wrap');
+    var item_html = '<div id="workboard"></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://www.xiaohongshu.com/user/profile/64f889d80000000004025d95?xsec_token=YBi3PR-3T81wvDpmtkmQlbImFcxayPVlg8qMw0SouA1_Y%3D&amp;xsec_source=app_share&amp;xhsshare=CopyLink&amp;appuid=64f889d80000000004025d95&amp;apptime=1751045227&amp;share_id=329450afb821445ca52895a817e5a394&amp;share_channel=copy_link" style="margin-inline:5px" data-title="博客框架为Hexo_v6.2.0" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-%E5%B0%8F%E7%BA%A2%E4%B9%A6-%23FF2442?logo=xiaohongshu" alt=""/></a><a class="github-badge" target="_blank" href="https://photo.weibo.com/6611991544/photos/detail/photo_id/5187927038099689/album_id/4266419536683617" style="margin-inline:5px" data-title="博客托管在GitHub Pages上" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-%E5%BE%AE%E4%BF%A1-%2307C160?logo=wechat" alt=""/></a><a class="github-badge" target="_blank" href="https://steamcommunity.com/profiles/76561199469975886/" style="margin-inline:5px" data-title="博客地址为GitHub Pages" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-Steam-%23395DA0?logo=steam" alt=""/></a><a class="github-badge" target="_blank" href="https://blog.csdn.net/2301_79780038?type=blog" style="margin-inline:5px" data-title="博客地址为GitHub Pages" title=""><img src="https://img.shields.io/badge/IT%E7%A4%BE%E5%8C%BA-CSDN-%23FC5531?logo=csdn" alt=""/></a></p>';
+    console.log('已挂载butterfly_footer_beautify')
+    parent_div_git.insertAdjacentHTML("beforeend",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_footer_beautify_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_footer_beautify_injector_config();
+  }
+  </script><script async src="/js/runtime.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"left","width":250,"height":300},"mobile":{"show":false},"log":false});</script></body></html>
