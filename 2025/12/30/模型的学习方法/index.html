@@ -1,0 +1,412 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>模型的学习方法 | HunterWarrior's blog</title><meta name="author" content="HunterWarrior"><meta name="copyright" content="HunterWarrior"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="机器学习  监督、无监督与半监督 机器学习中基本的学习方法有：监督学习（Supervised learning）、半监督学习（Semi-supervised learning）和无监督学习（Unsupervised learning）。他们最大的区别就是模型在训练时需要人工标注的标签信息，监督学习利用大量的标注数据来训练模型，使模型最终学习到输入和输出标签之间的相关性；半监督学">
+<meta property="og:type" content="article">
+<meta property="og:title" content="模型的学习方法">
+<meta property="og:url" content="https://hunterwarrior614.github.io/2025/12/30/%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/index.html">
+<meta property="og:site_name" content="HunterWarrior&#39;s blog">
+<meta property="og:description" content="机器学习  监督、无监督与半监督 机器学习中基本的学习方法有：监督学习（Supervised learning）、半监督学习（Semi-supervised learning）和无监督学习（Unsupervised learning）。他们最大的区别就是模型在训练时需要人工标注的标签信息，监督学习利用大量的标注数据来训练模型，使模型最终学习到输入和输出标签之间的相关性；半监督学">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://hunterwarrior614.github.io/images/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.png">
+<meta property="article:published_time" content="2025-12-30T08:57:00.000Z">
+<meta property="article:modified_time" content="2025-12-30T08:58:55.103Z">
+<meta property="article:author" content="HunterWarrior">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hunterwarrior614.github.io/images/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "模型的学习方法",
+  "url": "https://hunterwarrior614.github.io/2025/12/30/%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/",
+  "image": "https://hunterwarrior614.github.io/images/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.png",
+  "datePublished": "2025-12-30T08:57:00.000Z",
+  "dateModified": "2025-12-30T08:58:55.103Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "HunterWarrior",
+      "url": "https://hunterwarrior614.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://hunterwarrior614.github.io/2025/12/30/%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: HunterWarrior","link":"链接: ","source":"来源: HunterWarrior's blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '模型的学习方法',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="/css/universe.css"><!-- hexo injector head_end start --><link rel="stylesheet" href="https://www.fomal.cc/static/css/runtime.min.css" media="print" onload="this.media='all'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="/pace/flash.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg" style="background-color: #F0FFFD;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/机器学习.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.ico" alt="Logo"><span class="site-name">HunterWarrior's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">模型的学习方法</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">模型的学习方法</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-12-30T08:57:00.000Z" title="发表于 2025-12-30 16:57:00">2025-12-30</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-12-30T08:58:55.103Z" title="更新于 2025-12-30 16:58:55">2025-12-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.5k</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><figure>
+<img src="E:\AI\笔记\images\机器学习.png" alt="机器学习" />
+<figcaption aria-hidden="true">机器学习</figcaption>
+</figure>
+<h1 id="监督无监督与半监督">监督、无监督与半监督</h1>
+<p>机器学习中基本的学习方法有：监督学习（Supervised
+learning）、半监督学习（Semi-supervised
+learning）和无监督学习（Unsupervised
+learning）。他们最大的区别就是模型在训练时需要人工标注的标签信息，监督学习利用大量的标注数据来训练模型，使模型最终学习到输入和输出标签之间的相关性；半监督学习利用少量有标签的数据和大量无标签的数据来训练网络；而无监督学习不依赖任何标签值，通过对数据内在特征的挖掘，找到样本间的关系，比如聚类。</p>
+<h2 id="监督学习">监督学习</h2>
+<p><strong>监督学习</strong>就是已知输入数据（Input
+data）和输出数据（Annotations），通过训练一个模型（Model）来建立输入和输出之间的映射。在回归和分类任务中应用广泛。常用的监督学习方法包括：决策树、SVM、神经网络、线性回归和逻辑回归等。</p>
+<h2 id="无监督学习">无监督学习</h2>
+<p><strong>无监督学习</strong>是已知输入数据（Input
+data），通过训练一个模型（Model）来获取输入数据的结构以及之间的关系。常用于聚类、降维、异常检测等任务。常用的无监督学习方法包括：聚类分析（Clustering）、主成分分析（PCA）、自编码器（Autoencoder）。</p>
+<h2 id="半监督学习">半监督学习</h2>
+<p><strong>半监督学习</strong>将大量的无类标签的样例加入到有限的有类标签的样本中一起训练来进行学习，旨在解决现实世界中数据丰富但标签稀缺的常见问题。其建立在三个关键假设之上：<strong>平滑性假设</strong>（在输入空间中相近的数据点往往具有相似的标签）、<strong>聚类假设</strong>（数据倾向于形成离散的簇，同一簇内的样本很可能共享相同标签）和<strong>流形假设</strong>（高维数据实际上分布在低维流形结构上，标签在该流形上变化平缓）。</p>
+<figure>
+<img
+src="https://i-blog.csdnimg.cn/blog_migrate/40955d6cd051e32c9e4f7351a07c288e.png#pic_center"
+alt="在这里插入图片描述" />
+<figcaption aria-hidden="true">在这里插入图片描述</figcaption>
+</figure>
+<h1 id="无监督学习-1">无监督学习</h1>
+<h2 id="传统方法">传统方法</h2>
+<p>传统无监督学习方法主要分为以下几类：</p>
+<ul>
+<li><strong>聚类</strong>：核心思想是将数据集中的样本划分为若干个组（簇），使得<strong>同一簇内的样本彼此相似</strong>，而<strong>不同簇的样本差异较大</strong>。例如，K-means。</li>
+<li><strong>降维</strong>：核心思想是将高维数据映射到低维空间，同时<strong>尽可能保留数据的关键信息</strong>（如方差、结构）。目的是可视化、压缩数据或去除噪声。例如，主成分分析、自编码器等。</li>
+</ul>
+<h2 id="自监督学习">自监督学习</h2>
+<p>过去的无监督学习，例如自编码器，仅仅是做了维度的降低而已，<strong>并没有包含更多的语义特征</strong>，对下游任务并没有很大的帮助。因此想要在不需要手工标记数据的情况下，训练过程还能对任务本身有很大的帮助，可以<strong>包含更多的语义特征</strong>，自监督学习从而被提出。</p>
+<p>自监督学习主要是利用<strong>代理任务（pretext）</strong>从大规模的无监督数据中挖掘自身的监督信息，通过这种构造的监督信息对网络进行训练，从而可以学习到对下游任务有价值的表征。也就是说，自监督学习不需要任何的外部标记数据，这些标签是从输入数据自身中得到的。自监督学习的模式仍然是
+Pretrain-Fintune 的模式，即先在 pretext
+上进行预训练，然后将学习到的参数迁移到下游任务网络中，进行微调得到最终的网络。</p>
+<blockquote>
+<p>所谓<strong>代理任务（pretext）</strong>，就是为了使用自监督学习进行训练而定义出的任务（和现实中的分类、检测、分割任务不一样）。常用的代理任务有：</p>
+<ul>
+<li>图像旋转：通过训练网络来识别输入图像的 2D
+旋转角度以学习图像特征</li>
+<li>图像着色：使用图像灰度化来作为图像的输入数据，对应的彩色图像为标签数据训练网络</li>
+<li>图像修复：随机去掉图像中的某个部分来生成训练数据，原数据作为训练标签来进行预训练</li>
+</ul>
+</blockquote>
+<p>而自监督学习的方法主要可以分为 3 类：基于上下文（Context
+based），基于时序（Temporal Based），基于对比（Contrastive
+Based）。这里着重介绍基于对比的方法——对比学习。</p>
+<h3 id="基于上下文">基于上下文</h3>
+<p>基于数据本身的上下文信息，我们其实可以构造很多任务，比如在 NLP
+领域中最重要的算法 Word2vec 。Word2vec 主要是利用语句的顺序，例如 CBOW
+通过前后的词来预测中间的词，而 Skip-Gram 通过中间的词来预测前后的词。
+而在图像中，图像拼图（将图像分割，预测每一部分的相对位置或者预测出这是哪一种打乱方式）、图像修复（上述例子中提到）、图像着色（上述例子中提到）、图像旋转（上述例子中提到）等任务都是典型的作为pretext的例子。</p>
+<h3 id="基于时序">基于时序</h3>
+<p>之前介绍的方法大多是基于样本自身的信息，比如旋转、色彩、裁剪等。而样本间其实也是具有很多约束关系的，这里介绍利用时序约束来进行自监督学习的方法。最能体现时序的数据类型就是视频了。
+第一种思想是<strong>基于帧的相似性</strong>，对于视频中的每一帧，其实存在着特征相似的概念，简单来说我们可以认为视频中的相邻帧特征是相似的，而相隔较远的视频帧是不相似的，通过构建这种相似（position）和不相似（negative）的样本来进行自监督约束。另外，对于同一个物体的拍摄是可能存在多个视角（multi-view），对于多个视角中的同一帧，可以认为特征是相似的，对于不同帧可以认为是不相似的。还有一种想法是<strong>基于无监督追踪方法</strong>，首先在大量的无标签视频中进行无监督追踪，获取大量的物体追踪框。那么对于一个物体追踪框在不同帧的特征应该是相似的（positive），而对于不同物体的追踪框中的特征应该是不相似的（negative）。
+除了基于特征相似性外，视频的先后顺序也是一种自监督信息。比如<strong>基于顺序约束的方法</strong>，可以从视频中采样出正确的视频序列和不正确的视频序列，构造成正负样本对然后进行训练。简而言之，就是设计一个模型，来判断当前的视频序列是否是正确的顺序。</p>
+<h3 id="对比学习">对比学习</h3>
+<p><strong>对比学习则是一种特殊的无监督学习方法</strong>，旨在通过最大化相关样本之间的相似性并最小化不相关样本之间的相似性来学习数据表示。通常使用一种高自由度、自定义的规则生成正负样本。在模型预训练中有着广泛的应用。</p>
+<figure>
+<img
+src="https://pica.zhimg.com/v2-ccf115cdabc30428b02028ccdba36172_1440w.jpg"
+alt="img" />
+<figcaption aria-hidden="true">img</figcaption>
+</figure>
+<p>对比学习的一个通用框架如下：</p>
+<figure>
+<img
+src="https://pic2.zhimg.com/v2-99fec4c143a89fbf3c979e305f5effad_1440w.jpg"
+alt="img" />
+<figcaption aria-hidden="true">img</figcaption>
+</figure>
+<ul>
+<li><p>图中 Positive 和 Anchor 组成一组正样本对，这里 Anchor
+可以是图片，可以是音频，可以是特征；Positive 和Anchor
+一样，可以是多种数据类型，而且不一定要和 Anchor 是同种数据类型（比如
+CLIP)；</p></li>
+<li><p>Negative 和 Anchor 组成一组负样本对，Negative
+同样可以是多种数据类型，也不需要和 Anchor 是同一种数据类型。</p></li>
+</ul>
+<p>举几个例子：</p>
+<ol type="1">
+<li><p>数据增强方式：Anchor 是一张图片，Positive 是 Anchor
+图片的增强（裁剪，颜色变化等）图片，Negative 是其他图片；</p></li>
+<li><p>多视角方式：Anchor 是张三的正面图片，Positive
+是张三其他视角（反面、侧面等）的图片，Negative 是非张三图片；</p></li>
+<li><p>多传感器方式：Anchor 是RGB相机拍摄的张三图片，Positive
+是雷达获取的张三图片，Negative 是非张三图片；</p></li>
+<li><p>多模态方式：Anchor 是狗的图片，Positive
+是描述包含狗图片的一段文字，Negative
+是其他图片或者非描述狗的一段文字；</p></li>
+</ol>
+<p>总之，正负样本的定义自由度非常的高，而且往往训练出来的 Backbone
+模型，具有非常好的迁移性能。</p>
+<blockquote>
+<p><strong>既然对比学习是一种无监督学习方法，那么为什么又会有正负样本？</strong></p>
+<p>无监督学习虽然没有标注，但并不表示不需要“规则”（标注算是规则的一种），就像人联想到相似的物体，并不是没有规律的，这里的规律可能是颜色相近、外观类似、属于同一大类等等。因此无监督学习并非是使用没有标注的数据，而是使用一种能够<strong>自我标注</strong>的标注数据，这些标注构建起一套规则，人工智能就是学习一种能够在这套规则下运行准确的算法。那么正负样本的定义就是在构建一套规则。</p>
+</blockquote>
+<p>对比学习通常的代理任务有两种：</p>
+<ul>
+<li><p>个体判别：对于数据集中的任意一张图片而言，除了其自身通过增强获取到的图片为正样本外，其余图片都为负样本，即使该图片和自身图片是同一个对象。</p></li>
+<li><p>数据聚类：对于不同视角、传感器、模式获取的同一对象数据，为正样本，其余数据都为负样本。</p></li>
+</ul>
+<h1 id="参考">参考</h1>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/qq_44015059/article/details/106448533">一文看懂半监督学习(Semi-supervised
+Learning)和自监督学习(Self-Supervised Learning)</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/630101991">对比学习（Contrastive
+Learning）概述 - 知乎</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2134464">自监督学习详细介绍（学习笔记）-腾讯云开发者社区-腾讯云</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://hunterwarrior614.github.io">HunterWarrior</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://hunterwarrior614.github.io/2025/12/30/%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/">https://hunterwarrior614.github.io/2025/12/30/%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://hunterwarrior614.github.io" target="_blank">HunterWarrior's blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告"><img class="cover" src="/images/swap.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">OS_Challenge_SWAP 实现报告</div></div><div class="info-2"><div class="info-item-1"> 前言 SWAP 挑战性任务主要关于内存管理、进程调度与外设访问，基本只涉及内核的改动，要求对以上的知识有充足的认识与深刻的理解。代码改动总体上不算多（相较于 SHELL 挑战性任务），但根据自己的感受以及别人的描述是 SWAP 任务的思考量相对来说比较大， SHELL 代码量大但是是挑战性任务中思考量最小的一个。我自己花了大概 3 天的时间实现指导书上的所有操作 + 过编译（仅仅只是过编译，很多实现因为理解不到位都有错误），然后花了 3 天的时间 debug。 我在实现的过程中，pmap.c 改动的内容是最多的，因为其涉及 swap_out、swap_in 以及 TLB 重填逻辑等有关 SWAP 核心机制的实现。ide.c 和 ide.h 是我新增的文件，因为当前 MOS 中对外设的访问是通过文件系统实现的（Lab5 内容），其属于用户进程，并不方便内核去使用，且关键问题在于：Lab5 实现的文件系统是对主 IDE 控制器进行访问的，而 SWAP 挂载的磁盘 swap_disk 由从 IDE...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">HunterWarrior</div><div class="author-info-description">行而不辍，未来可期！</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/hunterwarrior614"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎大家来到我的博客！如有文章内容错误或建议，欢迎在评论区留言（不过评论区暂时无法使用）。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%91%E7%9D%A3%E6%97%A0%E7%9B%91%E7%9D%A3%E4%B8%8E%E5%8D%8A%E7%9B%91%E7%9D%A3"><span class="toc-number">1.</span> <span class="toc-text">监督、无监督与半监督</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0"><span class="toc-number">1.1.</span> <span class="toc-text">监督学习</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%97%A0%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0"><span class="toc-number">1.2.</span> <span class="toc-text">无监督学习</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%8A%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0"><span class="toc-number">1.3.</span> <span class="toc-text">半监督学习</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%97%A0%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0-1"><span class="toc-number">2.</span> <span class="toc-text">无监督学习</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%A0%E7%BB%9F%E6%96%B9%E6%B3%95"><span class="toc-number">2.1.</span> <span class="toc-text">传统方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%87%AA%E7%9B%91%E7%9D%A3%E5%AD%A6%E4%B9%A0"><span class="toc-number">2.2.</span> <span class="toc-text">自监督学习</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="toc-number">2.2.1.</span> <span class="toc-text">基于上下文</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8E%E6%97%B6%E5%BA%8F"><span class="toc-number">2.2.2.</span> <span class="toc-text">基于时序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0"><span class="toc-number">2.2.3.</span> <span class="toc-text">对比学习</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">3.</span> <span class="toc-text">参考</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/12/30/%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/" title="模型的学习方法"><img src="/images/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="模型的学习方法"/></a><div class="content"><a class="title" href="/2025/12/30/%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/" title="模型的学习方法">模型的学习方法</a><time datetime="2025-12-30T08:57:00.000Z" title="发表于 2025-12-30 16:57:00">2025-12-30</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告"><img src="/images/swap.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS_Challenge_SWAP 实现报告"/></a><div class="content"><a class="title" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告">OS_Challenge_SWAP 实现报告</a><time datetime="2025-06-28T07:12:08.000Z" title="发表于 2025-06-28 15:12:08">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="OS LAB5 文件系统"><img src="/images/gqj-5.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB5 文件系统"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="OS LAB5 文件系统">OS LAB5 文件系统</a><time datetime="2025-06-28T06:57:37.000Z" title="发表于 2025-06-28 14:57:37">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB4-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8Efork/" title="OS LAB4 系统调用与fork"><img src="/images/gqj-4.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB4 系统调用与fork"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB4-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8Efork/" title="OS LAB4 系统调用与fork">OS LAB4 系统调用与fork</a><time datetime="2025-06-28T06:57:24.000Z" title="发表于 2025-06-28 14:57:24">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB3-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BC%82%E5%B8%B8/" title="OS LAB3 进程与异常"><img src="/images/gqj-3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB3 进程与异常"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB3-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E5%BC%82%E5%B8%B8/" title="OS LAB3 进程与异常">OS LAB3 进程与异常</a><time datetime="2025-06-28T06:57:07.000Z" title="发表于 2025-06-28 14:57:07">2025-06-28</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/images/机器学习.png);"><div id="footer-wrap"><div class="copyright">&copy;2025 By HunterWarrior</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://hunterwarrior-twikoo.hf.space',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = (el = document, path = location.pathname) => {
+    twikoo.init({
+      el: el.querySelector('#twikoo-wrap'),
+      envId: 'https://hunterwarrior-twikoo.hf.space',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      },
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || path
+    })
+
+    
+
+    isShuoshuo && (window.shuoshuoComment.destroyTwikoo = () => {
+      if (el.children.length) {
+        el.innerHTML = ''
+        el.classList.add('no-comment')
+      }
+    })
+  }
+
+  const loadTwikoo = (el, path) => {
+    if (typeof twikoo === 'object') setTimeout(() => init(el, path), 0)
+    else btf.getScript('https://cdn.jsdelivr.net/npm/twikoo/dist/twikoo.all.min.js').then(() => init(el, path))
+  }
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Twikoo'
+      ? window.shuoshuoComment = { loadComment: loadTwikoo }
+      : window.loadOtherComment = loadTwikoo
+    return
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --> <script data-pjax>if(document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+    var parent = document.getElementById('recent-posts');
+    var child = '<div class="recent-post-item" style="width:100%;height: auto"><div id="catalog_magnet"><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/深度学习/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">🤖 深度学习 (2)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/操作系统/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">🐧 操作系统 (6)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/面向对象编程/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">💻 面向对象编程 (2)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/计算机组成/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">⚙️ 计算机组成 (5)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><a class="magnet_link_more"  href="https://hunterwarrior614.github.io/categories" style="flex:1;text-align: center;margin-bottom: 10px;">查看更多...</a></div></div>';
+    console.log('已挂载magnet')
+    parent.insertAdjacentHTML("afterbegin",child)}
+     </script><style>#catalog_magnet{flex-wrap: wrap;display: flex;width:100%;justify-content:space-between;padding: 10px 10px 0 10px;align-content: flex-start;}.magnet_item{flex-basis: calc(50% - 5px);background: #f2f2f2;margin-bottom: 10px;border-radius: 8px;transition: all 0.2s ease-in-out;}.magnet_item:hover{background: #b30070}.magnet_link_more{color:#555}.magnet_link{color:black}.magnet_link:hover{color:white}@media screen and (max-width: 600px) {.magnet_item {flex-basis: 100%;}}.magnet_link_context{display:flex;padding: 10px;font-size:16px;transition: all 0.2s ease-in-out;}.magnet_link_context:hover{padding: 10px 20px;}</style>
+    <style></style><script data-pjax>
+  function butterfly_footer_beautify_injector_config(){
+    var parent_div_git = document.getElementById('footer-wrap');
+    var item_html = '<div id="workboard"></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://www.xiaohongshu.com/user/profile/64f889d80000000004025d95?xsec_token=YBi3PR-3T81wvDpmtkmQlbImFcxayPVlg8qMw0SouA1_Y%3D&amp;xsec_source=app_share&amp;xhsshare=CopyLink&amp;appuid=64f889d80000000004025d95&amp;apptime=1751045227&amp;share_id=329450afb821445ca52895a817e5a394&amp;share_channel=copy_link" style="margin-inline:5px" data-title="博客框架为Hexo_v6.2.0" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-%E5%B0%8F%E7%BA%A2%E4%B9%A6-%23FF2442?logo=xiaohongshu" alt=""/></a><a class="github-badge" target="_blank" href="https://photo.weibo.com/6611991544/photos/detail/photo_id/5187927038099689/album_id/4266419536683617" style="margin-inline:5px" data-title="博客托管在GitHub Pages上" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-%E5%BE%AE%E4%BF%A1-%2307C160?logo=wechat" alt=""/></a><a class="github-badge" target="_blank" href="https://steamcommunity.com/profiles/76561199469975886/" style="margin-inline:5px" data-title="博客地址为GitHub Pages" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-Steam-%23395DA0?logo=steam" alt=""/></a><a class="github-badge" target="_blank" href="https://blog.csdn.net/2301_79780038?type=blog" style="margin-inline:5px" data-title="博客地址为GitHub Pages" title=""><img src="https://img.shields.io/badge/IT%E7%A4%BE%E5%8C%BA-CSDN-%23FC5531?logo=csdn" alt=""/></a></p>';
+    console.log('已挂载butterfly_footer_beautify')
+    parent_div_git.insertAdjacentHTML("beforeend",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_footer_beautify_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_footer_beautify_injector_config();
+  }
+  </script><script async src="/js/runtime.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"left","width":250,"height":300},"mobile":{"show":false},"log":false});</script></body></html>
