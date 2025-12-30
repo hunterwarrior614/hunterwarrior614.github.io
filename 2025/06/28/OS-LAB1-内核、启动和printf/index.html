@@ -416,7 +416,7 @@ va_end(ap); // 结束使用变长参数表 } <figure class="highlight plaintext"
     const countELement = document.getElementById('twikoo-count')
     if(!countELement) return
     twikoo.getCommentsCount({
-      envId: 'https://hunterwarrior-twikoo.hf.space',
+      envId: 'https://leafy-crisp-62057f.netlify.app/.netlify/functions/twikoo',
       region: '',
       urls: [window.location.pathname],
       includeReply: false
@@ -430,7 +430,7 @@ va_end(ap); // 结束使用变长参数表 } <figure class="highlight plaintext"
   const init = (el = document, path = location.pathname) => {
     twikoo.init({
       el: el.querySelector('#twikoo-wrap'),
-      envId: 'https://hunterwarrior-twikoo.hf.space',
+      envId: 'https://leafy-crisp-62057f.netlify.app/.netlify/functions/twikoo',
       region: '',
       onCommentLoaded: () => {
         btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))

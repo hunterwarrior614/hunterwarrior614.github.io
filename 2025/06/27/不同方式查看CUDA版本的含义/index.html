@@ -318,7 +318,7 @@ NVIDIA 驱动与 GPU 通信。只要驱动版本足够新（如支持 CUDA 12.0
     const countELement = document.getElementById('twikoo-count')
     if(!countELement) return
     twikoo.getCommentsCount({
-      envId: 'https://hunterwarrior-twikoo.hf.space',
+      envId: 'https://leafy-crisp-62057f.netlify.app/.netlify/functions/twikoo',
       region: '',
       urls: [window.location.pathname],
       includeReply: false
@@ -332,7 +332,7 @@ NVIDIA 驱动与 GPU 通信。只要驱动版本足够新（如支持 CUDA 12.0
   const init = (el = document, path = location.pathname) => {
     twikoo.init({
       el: el.querySelector('#twikoo-wrap'),
-      envId: 'https://hunterwarrior-twikoo.hf.space',
+      envId: 'https://leafy-crisp-62057f.netlify.app/.netlify/functions/twikoo',
       region: '',
       onCommentLoaded: () => {
         btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))

@@ -777,7 +777,7 @@ HI、LO 寄存器中的值相加，而不是覆盖），如果是以下写法会
     const countELement = document.getElementById('twikoo-count')
     if(!countELement) return
     twikoo.getCommentsCount({
-      envId: 'https://hunterwarrior-twikoo.hf.space',
+      envId: 'https://leafy-crisp-62057f.netlify.app/.netlify/functions/twikoo',
       region: '',
       urls: [window.location.pathname],
       includeReply: false
@@ -791,7 +791,7 @@ HI、LO 寄存器中的值相加，而不是覆盖），如果是以下写法会
   const init = (el = document, path = location.pathname) => {
     twikoo.init({
       el: el.querySelector('#twikoo-wrap'),
-      envId: 'https://hunterwarrior-twikoo.hf.space',
+      envId: 'https://leafy-crisp-62057f.netlify.app/.netlify/functions/twikoo',
       region: '',
       onCommentLoaded: () => {
         btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
