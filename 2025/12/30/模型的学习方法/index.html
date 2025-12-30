@@ -1,13 +1,13 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>模型的学习方法 | HunterWarrior's blog</title><meta name="author" content="HunterWarrior"><meta name="copyright" content="HunterWarrior"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="机器学习  监督、无监督与半监督 机器学习中基本的学习方法有：监督学习（Supervised learning）、半监督学习（Semi-supervised learning）和无监督学习（Unsupervised learning）。他们最大的区别就是模型在训练时需要人工标注的标签信息，监督学习利用大量的标注数据来训练模型，使模型最终学习到输入和输出标签之间的相关性；半监督学">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>模型的学习方法 | HunterWarrior's blog</title><meta name="author" content="HunterWarrior"><meta name="copyright" content="HunterWarrior"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="监督、无监督与半监督 机器学习中基本的学习方法有：监督学习（Supervised learning）、半监督学习（Semi-supervised learning）和无监督学习（Unsupervised learning）。他们最大的区别就是模型在训练时需要人工标注的标签信息，监督学习利用大量的标注数据来训练模型，使模型最终学习到输入和输出标签之间的相关性；半监督学习利用少量有标签的数">
 <meta property="og:type" content="article">
 <meta property="og:title" content="模型的学习方法">
 <meta property="og:url" content="https://hunterwarrior614.github.io/2025/12/30/%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/index.html">
 <meta property="og:site_name" content="HunterWarrior&#39;s blog">
-<meta property="og:description" content="机器学习  监督、无监督与半监督 机器学习中基本的学习方法有：监督学习（Supervised learning）、半监督学习（Semi-supervised learning）和无监督学习（Unsupervised learning）。他们最大的区别就是模型在训练时需要人工标注的标签信息，监督学习利用大量的标注数据来训练模型，使模型最终学习到输入和输出标签之间的相关性；半监督学">
+<meta property="og:description" content="监督、无监督与半监督 机器学习中基本的学习方法有：监督学习（Supervised learning）、半监督学习（Semi-supervised learning）和无监督学习（Unsupervised learning）。他们最大的区别就是模型在训练时需要人工标注的标签信息，监督学习利用大量的标注数据来训练模型，使模型最终学习到输入和输出标签之间的相关性；半监督学习利用少量有标签的数">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://hunterwarrior614.github.io/images/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.png">
 <meta property="article:published_time" content="2025-12-30T08:57:00.000Z">
-<meta property="article:modified_time" content="2025-12-30T08:58:55.103Z">
+<meta property="article:modified_time" content="2025-12-30T09:03:01.862Z">
 <meta property="article:author" content="HunterWarrior">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://hunterwarrior614.github.io/images/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.png"><script type="application/ld+json">{
@@ -17,7 +17,7 @@
   "url": "https://hunterwarrior614.github.io/2025/12/30/%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/",
   "image": "https://hunterwarrior614.github.io/images/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.png",
   "datePublished": "2025-12-30T08:57:00.000Z",
-  "dateModified": "2025-12-30T08:58:55.103Z",
+  "dateModified": "2025-12-30T09:03:01.862Z",
   "author": [
     {
       "@type": "Person",
@@ -166,10 +166,7 @@ btf.addGlobalFn('pjaxSend', () => {
   Pace.restart()
 }, 'pace_restart')
 
-</script><link rel="stylesheet" href="/pace/flash.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg" style="background-color: #F0FFFD;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/机器学习.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.ico" alt="Logo"><span class="site-name">HunterWarrior's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">模型的学习方法</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">模型的学习方法</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-12-30T08:57:00.000Z" title="发表于 2025-12-30 16:57:00">2025-12-30</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-12-30T08:58:55.103Z" title="更新于 2025-12-30 16:58:55">2025-12-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.5k</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><figure>
-<img src="E:\AI\笔记\images\机器学习.png" alt="机器学习" />
-<figcaption aria-hidden="true">机器学习</figcaption>
-</figure>
+</script><link rel="stylesheet" href="/pace/flash.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg" style="background-color: #F0FFFD;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/images/机器学习.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.ico" alt="Logo"><span class="site-name">HunterWarrior's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">模型的学习方法</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">模型的学习方法</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-12-30T08:57:00.000Z" title="发表于 2025-12-30 16:57:00">2025-12-30</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-12-30T09:03:01.862Z" title="更新于 2025-12-30 17:03:01">2025-12-30</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.5k</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><img src="E:\AI\笔记\images\机器学习.png" /></p>
 <h1 id="监督无监督与半监督">监督、无监督与半监督</h1>
 <p>机器学习中基本的学习方法有：监督学习（Supervised
 learning）、半监督学习（Semi-supervised
@@ -183,12 +180,8 @@ data）和输出数据（Annotations），通过训练一个模型（Model）来
 data），通过训练一个模型（Model）来获取输入数据的结构以及之间的关系。常用于聚类、降维、异常检测等任务。常用的无监督学习方法包括：聚类分析（Clustering）、主成分分析（PCA）、自编码器（Autoencoder）。</p>
 <h2 id="半监督学习">半监督学习</h2>
 <p><strong>半监督学习</strong>将大量的无类标签的样例加入到有限的有类标签的样本中一起训练来进行学习，旨在解决现实世界中数据丰富但标签稀缺的常见问题。其建立在三个关键假设之上：<strong>平滑性假设</strong>（在输入空间中相近的数据点往往具有相似的标签）、<strong>聚类假设</strong>（数据倾向于形成离散的簇，同一簇内的样本很可能共享相同标签）和<strong>流形假设</strong>（高维数据实际上分布在低维流形结构上，标签在该流形上变化平缓）。</p>
-<figure>
-<img
-src="https://i-blog.csdnimg.cn/blog_migrate/40955d6cd051e32c9e4f7351a07c288e.png#pic_center"
-alt="在这里插入图片描述" />
-<figcaption aria-hidden="true">在这里插入图片描述</figcaption>
-</figure>
+<p><img
+src="https://i-blog.csdnimg.cn/blog_migrate/40955d6cd051e32c9e4f7351a07c288e.png#pic_center" /></p>
 <h1 id="无监督学习-1">无监督学习</h1>
 <h2 id="传统方法">传统方法</h2>
 <p>传统无监督学习方法主要分为以下几类：</p>
@@ -224,19 +217,11 @@ Based）。这里着重介绍基于对比的方法——对比学习。</p>
 除了基于特征相似性外，视频的先后顺序也是一种自监督信息。比如<strong>基于顺序约束的方法</strong>，可以从视频中采样出正确的视频序列和不正确的视频序列，构造成正负样本对然后进行训练。简而言之，就是设计一个模型，来判断当前的视频序列是否是正确的顺序。</p>
 <h3 id="对比学习">对比学习</h3>
 <p><strong>对比学习则是一种特殊的无监督学习方法</strong>，旨在通过最大化相关样本之间的相似性并最小化不相关样本之间的相似性来学习数据表示。通常使用一种高自由度、自定义的规则生成正负样本。在模型预训练中有着广泛的应用。</p>
-<figure>
-<img
-src="https://pica.zhimg.com/v2-ccf115cdabc30428b02028ccdba36172_1440w.jpg"
-alt="img" />
-<figcaption aria-hidden="true">img</figcaption>
-</figure>
+<p><img
+src="https://pica.zhimg.com/v2-ccf115cdabc30428b02028ccdba36172_1440w.jpg" /></p>
 <p>对比学习的一个通用框架如下：</p>
-<figure>
-<img
-src="https://pic2.zhimg.com/v2-99fec4c143a89fbf3c979e305f5effad_1440w.jpg"
-alt="img" />
-<figcaption aria-hidden="true">img</figcaption>
-</figure>
+<p><img
+src="https://pic2.zhimg.com/v2-99fec4c143a89fbf3c979e305f5effad_1440w.jpg" /></p>
 <ul>
 <li><p>图中 Positive 和 Anchor 组成一组正样本对，这里 Anchor
 可以是图片，可以是音频，可以是特征；Positive 和Anchor
