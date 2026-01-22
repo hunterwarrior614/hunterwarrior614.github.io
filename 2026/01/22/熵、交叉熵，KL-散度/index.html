@@ -1,0 +1,484 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>熵、交叉熵，KL 散度 | HunterWarrior's blog</title><meta name="author" content="HunterWarrior"><meta name="copyright" content="HunterWarrior"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="熵 信息量 信息量是对信息的度量，我们接受到的信息量和具体发生的事情有关。 信息的大小和随机事件的概率负相关。概率越小的事情若发生了产生的信息量越大，因为它排除了别的很多的可能性，例如今天下冰雹；而概率越大的事情产生的信息量越小，例如太阳从东边升起并不会带来什么信息。 假设有不相关事件 X 和 Y，若两个事件同时发生，其概率为 P(X, Y) &#x3D; P(X) * P(Y)，产生的信息量为">
+<meta property="og:type" content="article">
+<meta property="og:title" content="熵、交叉熵，KL 散度">
+<meta property="og:url" content="https://hunterwarrior614.github.io/2026/01/22/%E7%86%B5%E3%80%81%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%8CKL-%E6%95%A3%E5%BA%A6/index.html">
+<meta property="og:site_name" content="HunterWarrior&#39;s blog">
+<meta property="og:description" content="熵 信息量 信息量是对信息的度量，我们接受到的信息量和具体发生的事情有关。 信息的大小和随机事件的概率负相关。概率越小的事情若发生了产生的信息量越大，因为它排除了别的很多的可能性，例如今天下冰雹；而概率越大的事情产生的信息量越小，例如太阳从东边升起并不会带来什么信息。 假设有不相关事件 X 和 Y，若两个事件同时发生，其概率为 P(X, Y) &#x3D; P(X) * P(Y)，产生的信息量为">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://hunterwarrior614.github.io/2026/01/22/%E7%86%B5%E3%80%81%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%8CKL-%E6%95%A3%E5%BA%A6/formula.png">
+<meta property="article:published_time" content="2026-01-22T15:04:38.000Z">
+<meta property="article:modified_time" content="2026-01-22T15:10:19.133Z">
+<meta property="article:author" content="HunterWarrior">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://hunterwarrior614.github.io/2026/01/22/%E7%86%B5%E3%80%81%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%8CKL-%E6%95%A3%E5%BA%A6/formula.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "熵、交叉熵，KL 散度",
+  "url": "https://hunterwarrior614.github.io/2026/01/22/%E7%86%B5%E3%80%81%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%8CKL-%E6%95%A3%E5%BA%A6/",
+  "image": "https://hunterwarrior614.github.io/2026/01/22/%E7%86%B5%E3%80%81%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%8CKL-%E6%95%A3%E5%BA%A6/formula.png",
+  "datePublished": "2026-01-22T15:04:38.000Z",
+  "dateModified": "2026-01-22T15:10:19.133Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "HunterWarrior",
+      "url": "https://hunterwarrior614.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://hunterwarrior614.github.io/2026/01/22/%E7%86%B5%E3%80%81%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%8CKL-%E6%95%A3%E5%BA%A6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: HunterWarrior","link":"链接: ","source":"来源: HunterWarrior's blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '熵、交叉熵，KL 散度',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css" media="defer" onload="this.media='all'"><link rel="stylesheet" href="/css/universe.css"><!-- hexo injector head_end start --><link rel="stylesheet" href="https://www.fomal.cc/static/css/runtime.min.css" media="print" onload="this.media='all'"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="/pace/flash.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js/pace.min.js"></script><div id="web_bg" style="background-color: #F0FFFD;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">16</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(2026/01/22/熵、交叉熵，KL-散度/formula.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.ico" alt="Logo"><span class="site-name">HunterWarrior's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">熵、交叉熵，KL 散度</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fa fa-graduation-cap"></i><span> 博文</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/"><i class="fa-fw fa fa-archive"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/archives/"><i class="fa-fw fa fa-folder-open"></i><span> 时间轴</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于笔者</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">熵、交叉熵，KL 散度</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-22T15:04:38.000Z" title="发表于 2026-01-22 23:04:38">2026-01-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-22T15:10:19.133Z" title="更新于 2026-01-22 23:10:19">2026-01-22</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.1k</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="熵">熵</h1>
+<h2 id="信息量">信息量</h2>
+<p>信息量是对信息的度量，我们接受到的信息量和具体发生的事情有关。</p>
+<p><strong>信息的大小和随机事件的概率负相关</strong>。概率越小的事情若发生了产生的信息量越大，因为它排除了别的很多的可能性，例如今天下冰雹；而概率越大的事情产生的信息量越小，例如太阳从东边升起并不会带来什么信息。</p>
+<p>假设有不相关事件 <span class="math inline"><em>X</em></span> 和 <span
+class="math inline"><em>Y</em></span>，若两个事件同时发生，其概率为
+<span
+class="math inline"><em>P</em>(<em>X</em>, <em>Y</em>) = <em>P</em>(<em>X</em>) * <em>P</em>(<em>Y</em>)</span>，产生的信息量为
+<span
+class="math inline"><em>h</em>(<em>X</em>, <em>Y</em>) = <em>h</em>(<em>X</em>) + <em>h</em>(<em>Y</em>)</span>，由此可见<strong>信息量
+<span class="math inline"><em>h</em>(<em>X</em>)</span> 与发生概率 <span
+class="math inline"><em>P</em>(<em>X</em>)</span>
+对数相关</strong>。</p>
+<p>综上两条性质，可以定义信息量： <span
+class="math display"><em>h</em>(<em>X</em>) = −log<sub>2</sub><em>P</em>(<em>X</em>)</span></p>
+<blockquote>
+<p>底数为 2 这是因为只是遵循信息论的普遍传统，使用 2 作为对数的底。</p>
+</blockquote>
+<h2 id="熵信息熵">熵（信息熵）</h2>
+<p><strong>信息量</strong>度量的是一个具体事件发生了所带来的信息，而<strong>信息熵</strong>则是在结果出来之前<strong>对可能产生的信息量的期望</strong>——考虑该随机变量的所有可能取值，即所有可能发生事件所带来的信息量的期望。熵简写为
+<span class="math inline"><em>H</em></span>，定义为 <span
+class="math display"><em>H</em>(<em>P</em>) = <em>E</em><em>n</em><em>t</em><em>r</em><em>o</em><em>p</em><em>y</em> = 𝔼<sub><em>x</em> ∼ <em>P</em></sub>[−log <em>P</em>(<em>x</em>)]</span>
+对于离散随机变量 <span
+class="math inline"><em>X</em> ∼ <em>P</em></span>，其公式为 <span
+class="math display"><em>H</em>(<em>P</em>) = −∑<sub><em>i</em></sub><em>P</em>(<em>x</em><sub><em>i</em></sub>)log<sub>2</sub><em>P</em>(<em>x</em><sub><em>i</em></sub>)</span>
+对于连续随机变量 <span
+class="math inline"><em>X</em> ∼ <em>P</em></span>，其公式为 <span
+class="math display"><em>H</em>(<em>P</em>) = −∫<em>P</em>(<em>x</em>)[log<sub>2</sub><em>P</em>(<em>x</em>)]<em>d</em><em>x</em></span></p>
+<blockquote>
+<p>信息论中熵的概念首次被香农提出，目的是寻找一种高效/无损地编码信息的方法：以编码后数据的平均长度来衡量高效性，平均长度越小越高效；同时还需满足“无损”的条件，即编码后不能有原始信息的丢失。这样，香农提出了熵的理论定义：<strong>无损编码事件信息的最小平均编码长度</strong>。</p>
+<p>对于最理想的情况，<span class="math inline"><em>N</em></span>
+个事件等可能，则每个事件编码长度为 <span class="math inline">$\log_{2}
+N=-\log\frac{1}{N}=-\log P$</span>，那么平均最小编码长度就是 <span
+class="math inline">−∑<sub><em>i</em></sub><em>P</em>(<em>i</em>)log <em>P</em>(<em>i</em>)</span>。这也是所有情况的平均编码长度的<strong>理论下限</strong>。</p>
+</blockquote>
+<blockquote>
+<p>物理学中熵定义为 <span
+class="math inline"><em>S</em> = <em>k</em>ln <em>Ω</em></span>。</p>
+</blockquote>
+<h1 id="交叉熵">交叉熵</h1>
+<p>##熵的估计</p>
+<p>根据熵的公式定义可知，只要知道了任何事件的概率分布 <span
+class="math inline"><em>P</em></span>，就可以计算它的熵。然而，在不知道事件的概率分布的情况下，想要计算熵，只能去估计熵。</p>
+<p>在观测之前，我们只有预估的概率分布 <span
+class="math inline"><em>Q</em></span>，使用估计得到的概率分布 <span
+class="math inline"><em>Q</em></span>，可以计算估计的熵： <span
+class="math display"><em>E</em><em>s</em><em>t</em><em>i</em><em>m</em><em>a</em><em>t</em><em>e</em><em>d</em><em>E</em><em>n</em><em>t</em><em>r</em><em>o</em><em>p</em><em>y</em> = 𝔼<sub><em>x</em> ∼ <em>Q</em></sub>[−log <em>Q</em>(<em>x</em>)]</span></p>
+<h2 id="交叉熵-1">交叉熵</h2>
+<p>然而，估计的概率分布 <span class="math inline"><em>Q</em></span>
+为公式引入了两部分的不确定性：不确定的概率分布 <span
+class="math inline"><em>Q</em></span> 与不确定的最小编码长度 <span
+class="math inline">−log <em>Q</em>(<em>x</em>)</span>，因此估计的熵结果
+<span
+class="math inline"><em>E</em><em>s</em><em>t</em><em>i</em><em>m</em><em>a</em><em>t</em><em>e</em><em>d</em><em>E</em><em>n</em><em>t</em><em>r</em><em>o</em><em>p</em><em>y</em></span>
+可能错得离谱，<strong>与真实的熵 <span
+class="math inline"><em>E</em><em>n</em><em>t</em><em>r</em><em>o</em><em>p</em><em>y</em></span>
+对比毫无意义</strong>。</p>
+<p>我们的目的是为了使估计的概率分布 <span
+class="math inline"><em>Q</em></span> 尽可能接近真实的概率分布 <span
+class="math inline"><em>P</em></span>，也就是为了让平均最小编码长度尽可能小，而理论平均最小编码长度的值为熵
+<span
+class="math inline"><em>E</em><em>n</em><em>t</em><em>r</em><em>o</em><em>p</em><em>y</em> = 𝔼<sub><em>x</em> ∼ <em>P</em></sub>[−log <em>P</em>(<em>x</em>)]</span>，因此我们需要<strong>对比</strong>最小编码长度
+<span class="math inline">−log <em>Q</em>(<em>x</em>)</span> 与 <span
+class="math inline">−log <em>P</em>(<em>x</em>)</span>，即通过 <span
+class="math inline">𝔼<sub><em>x</em> ∼ <em>P</em></sub>[−log <em>Q</em>(<em>x</em>)]</span>
+的值来评判 <span class="math inline"><em>Q</em></span> 对 <span
+class="math inline"><em>P</em></span> 的接近程度。</p>
+<p>从而定义交叉熵： <span
+class="math display"><em>H</em>(<em>P</em>, <em>Q</em>) = <em>C</em><em>r</em><em>o</em><em>s</em><em>s</em><em>E</em><em>n</em><em>t</em><em>r</em><em>o</em><em>p</em><em>y</em> = 𝔼<sub><em>x</em> ∼ <em>P</em></sub>[−log <em>Q</em>(<em>x</em>)]</span>
+由交叉熵的定义可知，交叉熵的最小值为熵 <span
+class="math inline">𝔼<sub><em>x</em> ∼ <em>P</em></sub>[−log <em>P</em>(<em>x</em>)]</span>，当且仅当估计的概率分布
+<span class="math inline"><em>Q</em></span> 与真实的概率分布 <span
+class="math inline"><em>P</em></span>
+完全吻合时取得最小值。因此可以使用交叉熵作为损失函数，目标为最小化交叉熵。</p>
+<blockquote>
+<p>为什么交叉熵用真实概率分布 <span
+class="math inline"><em>P</em></span>
+作为概率分布去计算估计的最小编码长度 <span
+class="math inline">−log <em>Q</em>(<em>x</em>)</span>
+的期望，而不是反过来，用估计的概率分布 <span
+class="math inline"><em>Q</em></span>
+作为概率分布去计算真实的最小编码长度 <span
+class="math inline">−log <em>P</em>(<em>x</em>)</span> 的期望？</p>
+<p>我们的目标是为了让 <span class="math inline"><em>Q</em></span> 去回归
+<span class="math inline"><em>P</em></span>，因此衡量标准必须以 <span
+class="math inline"><em>P</em></span>
+为基准，交叉熵表达的是<strong>在真实分布下</strong>，当前编码方案的平均编码长度；最小化交叉熵的过程意味着<strong>基于真实情况最优化编码方案</strong>。如果反过来定义，则没有意义；它优化的方向是未知的，甚至不能收敛，因为
+<span
+class="math inline">𝔼<sub><em>x</em> ∼ <em>Q</em></sub>[−log <em>P</em>(<em>x</em>)]</span>
+未必一定大于 <span
+class="math inline">𝔼<sub><em>x</em> ∼ <em>P</em></sub>[−log <em>P</em>(<em>x</em>)]</span>，这是未知的。</p>
+</blockquote>
+<h2 id="交叉熵作为损失函数">交叉熵作为损失函数</h2>
+<p>假设一个动物照片的数据集中有 5
+种动物，且每张照片中只有一只动物，每张照片的标签都是 one-hot 编码。</p>
+<p><img src="v2-7a01e17d8c517e60667a7fdb41723c0e_1440w.png" /></p>
+<p>第一张照片是狗的概率为 100%，是其他的动物的概率是
+0；第二张照片是狐狸的概率是
+100%，是其他动物的概率是0；其余照片同理。因此可以计算下，<strong>每张照片的熵都为
+0</strong>。换句话说，以 one-hot 编码作为标签的每张照片都有 100%
+的确定度，不像别的描述概率的方式：狗的概率为 90%，猫的概率为 10%。</p>
+<p>假设有两个机器学习模型对第一张照片分别作出了预测：Q1 和
+Q2，而第一张照片的真实标签为 [1,0,0,0,0]。</p>
+<p><img src="v2-501d2c23dd7901b3d2b3e35de3539793_1440w.png" /></p>
+<p>两个模型预测效果如何呢，可以分别计算下交叉熵：</p>
+<p><img src="v2-8fdce81cdbdcdff42a9bbd2da6962fac_1440w.jpg" /></p>
+<p>交叉熵对比了模型的预测结果和数据的真实标签，<strong>随着预测越来越准确，交叉熵的值越来越小</strong>，如果预测完全正确，交叉熵的值就为
+0。因此，训练分类模型时，可以使用交叉熵作为损失函数。</p>
+<h1 id="kl-散度">KL 散度</h1>
+<h2 id="kl-散度相对熵">KL 散度（相对熵）</h2>
+<p>假设有两个概率分布 <span class="math inline"><em>P</em></span> 和
+<span
+class="math inline"><em>Q</em></span>，且事件为连续型随机变量。对于单个事件
+<span class="math inline"><em>x</em></span>，模型 <span
+class="math inline"><em>P</em></span> 相对模型 <span
+class="math inline"><em>Q</em></span>
+的<strong>信息损失</strong>为信息量之差 <span
+class="math inline">$(-\log Q(x))-(-\log
+P(x))=\log(\frac{P(x)}{Q(x)})$</span>；要衡量模型 <span
+class="math inline"><em>P</em></span> 相对于模型 <span
+class="math inline"><em>Q</em></span>
+的整体损失（平均损失），需要计算<strong>所有事件的信息损失的平均</strong>，即为
+<span class="math inline">$\int
+P(x)\log(\frac{P(x)}{Q(x)})dx$</span>。</p>
+<p>从而定义 <strong><span
+class="math inline"><em>K</em><em>L</em></span> 散度</strong>： <span
+class="math display">$$
+KL(P||Q)=\int P(x)\log(\frac{P(x)}{Q(x)})dx
+$$</span> 称作 <strong><span class="math inline"><em>P</em></span>
+相对于 <span class="math inline"><em>Q</em></span> 的 <span
+class="math inline"><em>K</em><em>L</em></span>
+散度</strong>，其表达的含义为<strong>当我们认为（或假设）真实分布是
+Q，但实际数据来自 P
+时，所产生“信息损失”的平均值</strong>，一句话说就是<strong>用假设分布
+<span class="math inline"><em>Q</em></span> 去代表真实分布 <span
+class="math inline"><em>P</em></span> 的<mark>代价</mark></strong>。</p>
+<p>从上述公式可以看出，当且仅当 <span
+class="math inline"><em>P</em> = <em>Q</em></span> 时，<span
+class="math inline"><em>K</em><em>L</em>(<em>P</em>||<em>Q</em>) = 0</span>。此外具有两个性质：<strong>非负性</strong>与<strong>不对称性</strong>。后者意味着
+<span class="math inline"><em>P</em></span> 对于 <span
+class="math inline"><em>Q</em></span> 的 <span
+class="math inline"><em>K</em><em>L</em></span> 散度并不等于 <span
+class="math inline"><em>Q</em></span> 对于 <span
+class="math inline"><em>P</em></span> 的 <span
+class="math inline"><em>K</em><em>L</em></span>
+散度。因此，<strong><span
+class="math inline"><em>K</em><em>L</em></span> 散度并不是一个度量，即
+<span class="math inline"><em>K</em><em>L</em></span>
+散度并非距离</strong>。</p>
+<p><span class="math inline"><em>K</em><em>L</em></span>
+散度的理论意义在于度量两个概率分布之间的差异程度，当 <span
+class="math inline"><em>K</em><em>L</em></span>
+散度越大的时候，说明两者的差异程度越大；而当 <span
+class="math inline"><em>K</em><em>L</em></span>
+散度小的时候，则说明两者的差异程度小。如果两者相同的话，则该 <span
+class="math inline"><em>K</em><em>L</em></span> 散度应该为 0。</p>
+<h2 id="kl-散度与交叉熵和信息熵的关系">KL
+散度与交叉熵和信息熵的关系</h2>
+<p>将 <span class="math inline"><em>K</em><em>L</em></span>
+散度公式变形： <span class="math display">$$
+KL(P||Q)=\int P(x)\log(\frac{P(x)}{Q(x)})dx=-\int P(x)\log Q(x)dx+\int
+P(x)\log P(x)dx=H(P,Q)-H(P)
+$$</span> 因此 <span class="math inline"><em>K</em><em>L</em></span>
+散度为交叉熵与信息熵之差。</p>
+<p>在分类任务中，由于真实标签分布 <span
+class="math inline"><em>P</em></span>（通常是one-hot）的熵 <span
+class="math inline"><em>H</em>(<em>P</em>) = 0</span>，因此在这个特定场景下，<strong>最小化交叉熵
+<span class="math inline"><em>H</em>(<em>P</em>, <em>Q</em>)</span>
+完全等价于最小化 <span class="math inline"><em>K</em><em>L</em></span>
+散度 <span
+class="math inline"><em>K</em><em>L</em>(<em>P</em>||<em>Q</em>)</span></strong>。这解释了为什么交叉熵能成为如此完美的代理损失函数。</p>
+<h1 id="参考">参考</h1>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/qq_38890412/article/details/106149936">傻子都能看懂的——信息熵（香农熵）-CSDN博客</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/149186719">一文搞懂熵(Entropy),交叉熵(Cross-Entropy)
+- 知乎</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://blog.csdn.net/Rocky6688/article/details/103470437">机器学习_KL散度详解（全网最详细）_kl散度计算公式-CSDN博客</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/1950257135775642370">深入理解
+KL 散度（Kullback-Leibler
+Divergence）：从直觉、数学到前沿应用的全方位解析 - 知乎</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://hunterwarrior614.github.io">HunterWarrior</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://hunterwarrior614.github.io/2026/01/22/%E7%86%B5%E3%80%81%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%8CKL-%E6%95%A3%E5%BA%A6/">https://hunterwarrior614.github.io/2026/01/22/%E7%86%B5%E3%80%81%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%8CKL-%E6%95%A3%E5%BA%A6/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://hunterwarrior614.github.io" target="_blank">HunterWarrior's blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/2026/01/22/%E7%86%B5%E3%80%81%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%8CKL-%E6%95%A3%E5%BA%A6/formula.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/12/30/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/" title="机器学习的学习方法"><img class="cover" src="/2025/12/30/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">机器学习的学习方法</div></div><div class="info-2"><div class="info-item-1">...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/head-picture.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">HunterWarrior</div><div class="author-info-description">行而不辍，未来可期！</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">16</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/hunterwarrior614"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎大家来到我的博客😊如有文章内容错误或建议，欢迎在评论区留言！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%86%B5"><span class="toc-number">1.</span> <span class="toc-text">熵</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E9%87%8F"><span class="toc-number">1.1.</span> <span class="toc-text">信息量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%86%B5%E4%BF%A1%E6%81%AF%E7%86%B5"><span class="toc-number">1.2.</span> <span class="toc-text">熵（信息熵）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%A4%E5%8F%89%E7%86%B5"><span class="toc-number">2.</span> <span class="toc-text">交叉熵</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%A4%E5%8F%89%E7%86%B5-1"><span class="toc-number">2.1.</span> <span class="toc-text">交叉熵</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%A4%E5%8F%89%E7%86%B5%E4%BD%9C%E4%B8%BA%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="toc-number">2.2.</span> <span class="toc-text">交叉熵作为损失函数</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#kl-%E6%95%A3%E5%BA%A6"><span class="toc-number">3.</span> <span class="toc-text">KL 散度</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#kl-%E6%95%A3%E5%BA%A6%E7%9B%B8%E5%AF%B9%E7%86%B5"><span class="toc-number">3.1.</span> <span class="toc-text">KL 散度（相对熵）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#kl-%E6%95%A3%E5%BA%A6%E4%B8%8E%E4%BA%A4%E5%8F%89%E7%86%B5%E5%92%8C%E4%BF%A1%E6%81%AF%E7%86%B5%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">3.2.</span> <span class="toc-text">KL
+散度与交叉熵和信息熵的关系</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">4.</span> <span class="toc-text">参考</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/22/%E7%86%B5%E3%80%81%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%8CKL-%E6%95%A3%E5%BA%A6/" title="熵、交叉熵，KL 散度"><img src="/2026/01/22/%E7%86%B5%E3%80%81%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%8CKL-%E6%95%A3%E5%BA%A6/formula.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="熵、交叉熵，KL 散度"/></a><div class="content"><a class="title" href="/2026/01/22/%E7%86%B5%E3%80%81%E4%BA%A4%E5%8F%89%E7%86%B5%EF%BC%8CKL-%E6%95%A3%E5%BA%A6/" title="熵、交叉熵，KL 散度">熵、交叉熵，KL 散度</a><time datetime="2026-01-22T15:04:38.000Z" title="发表于 2026-01-22 23:04:38">2026-01-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/30/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/" title="机器学习的学习方法"><img src="/2025/12/30/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="机器学习的学习方法"/></a><div class="content"><a class="title" href="/2025/12/30/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/" title="机器学习的学习方法">机器学习的学习方法</a><time datetime="2025-12-30T08:57:00.000Z" title="发表于 2025-12-30 16:57:00">2025-12-30</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告"><img src="/images/swap.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS_Challenge_SWAP 实现报告"/></a><div class="content"><a class="title" href="/2025/06/28/OS-Challenge-SWAP-%E5%AE%9E%E7%8E%B0%E6%8A%A5%E5%91%8A/" title="OS_Challenge_SWAP 实现报告">OS_Challenge_SWAP 实现报告</a><time datetime="2025-06-28T07:12:08.000Z" title="发表于 2025-06-28 15:12:08">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="OS LAB5 文件系统"><img src="/images/gqj-5.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB5 文件系统"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB5-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" title="OS LAB5 文件系统">OS LAB5 文件系统</a><time datetime="2025-06-28T06:57:37.000Z" title="发表于 2025-06-28 14:57:37">2025-06-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/06/28/OS-LAB4-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8Efork/" title="OS LAB4 系统调用与fork"><img src="/images/gqj-4.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS LAB4 系统调用与fork"/></a><div class="content"><a class="title" href="/2025/06/28/OS-LAB4-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8Efork/" title="OS LAB4 系统调用与fork">OS LAB4 系统调用与fork</a><time datetime="2025-06-28T06:57:24.000Z" title="发表于 2025-06-28 14:57:24">2025-06-28</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(2026/01/22/熵、交叉熵，KL-散度/formula.png);"><div id="footer-wrap"><div class="copyright">&copy;2025 - 2026 By HunterWarrior</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://leafy-crisp-62057f.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const init = (el = document, path = location.pathname) => {
+    twikoo.init({
+      el: el.querySelector('#twikoo-wrap'),
+      envId: 'https://leafy-crisp-62057f.netlify.app/.netlify/functions/twikoo',
+      region: '',
+      onCommentLoaded: () => {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      },
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || path
+    })
+
+    
+
+    isShuoshuo && (window.shuoshuoComment.destroyTwikoo = () => {
+      if (el.children.length) {
+        el.innerHTML = ''
+        el.classList.add('no-comment')
+      }
+    })
+  }
+
+  const loadTwikoo = (el, path) => {
+    if (typeof twikoo === 'object') setTimeout(() => init(el, path), 0)
+    else btf.getScript('https://cdn.jsdelivr.net/npm/twikoo/dist/twikoo.all.min.js').then(() => init(el, path))
+  }
+
+  if (isShuoshuo) {
+    'Twikoo' === 'Twikoo'
+      ? window.shuoshuoComment = { loadComment: loadTwikoo }
+      : window.loadOtherComment = loadTwikoo
+    return
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script></div><canvas id="universe"></canvas><script defer src="/js/universe.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="true"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --> <script data-pjax>if(document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+    var parent = document.getElementById('recent-posts');
+    var child = '<div class="recent-post-item" style="width:100%;height: auto"><div id="catalog_magnet"><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/深度学习/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">🤖 深度学习 (3)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/操作系统/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">🐧 操作系统 (6)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/面向对象编程/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">💻 面向对象编程 (2)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><div class="magnet_item"><a class="magnet_link" href="https://hunterwarrior614.github.io/categories/计算机组成/"><div class="magnet_link_context" style=""><span style="font-weight:500;flex:1">⚙️ 计算机组成 (5)</span><span style="padding:0px 4px;border-radius: 8px;"><i class="fas fa-arrow-circle-right"></i></span></div></a></div><a class="magnet_link_more"  href="https://hunterwarrior614.github.io/categories" style="flex:1;text-align: center;margin-bottom: 10px;">查看更多...</a></div></div>';
+    console.log('已挂载magnet')
+    parent.insertAdjacentHTML("afterbegin",child)}
+     </script><style>#catalog_magnet{flex-wrap: wrap;display: flex;width:100%;justify-content:space-between;padding: 10px 10px 0 10px;align-content: flex-start;}.magnet_item{flex-basis: calc(50% - 5px);background: #f2f2f2;margin-bottom: 10px;border-radius: 8px;transition: all 0.2s ease-in-out;}.magnet_item:hover{background: #b30070}.magnet_link_more{color:#555}.magnet_link{color:black}.magnet_link:hover{color:white}@media screen and (max-width: 600px) {.magnet_item {flex-basis: 100%;}}.magnet_link_context{display:flex;padding: 10px;font-size:16px;transition: all 0.2s ease-in-out;}.magnet_link_context:hover{padding: 10px 20px;}</style>
+    <style></style><script data-pjax>
+  function butterfly_footer_beautify_injector_config(){
+    var parent_div_git = document.getElementById('footer-wrap');
+    var item_html = '<div id="workboard"></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://www.xiaohongshu.com/user/profile/64f889d80000000004025d95?xsec_token=YBi3PR-3T81wvDpmtkmQlbImFcxayPVlg8qMw0SouA1_Y%3D&amp;xsec_source=app_share&amp;xhsshare=CopyLink&amp;appuid=64f889d80000000004025d95&amp;apptime=1751045227&amp;share_id=329450afb821445ca52895a817e5a394&amp;share_channel=copy_link" style="margin-inline:5px" data-title="博客框架为Hexo_v6.2.0" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-%E5%B0%8F%E7%BA%A2%E4%B9%A6-%23FF2442?logo=xiaohongshu" alt=""/></a><a class="github-badge" target="_blank" href="https://photo.weibo.com/6611991544/photos/detail/photo_id/5187927038099689/album_id/4266419536683617" style="margin-inline:5px" data-title="博客托管在GitHub Pages上" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-%E5%BE%AE%E4%BF%A1-%2307C160?logo=wechat" alt=""/></a><a class="github-badge" target="_blank" href="https://steamcommunity.com/profiles/76561199469975886/" style="margin-inline:5px" data-title="博客地址为GitHub Pages" title=""><img src="https://img.shields.io/badge/%E7%A4%BE%E4%BA%A4%E5%AA%92%E4%BD%93-Steam-%23395DA0?logo=steam" alt=""/></a><a class="github-badge" target="_blank" href="https://blog.csdn.net/2301_79780038?type=blog" style="margin-inline:5px" data-title="博客地址为GitHub Pages" title=""><img src="https://img.shields.io/badge/IT%E7%A4%BE%E5%8C%BA-CSDN-%23FC5531?logo=csdn" alt=""/></a></p>';
+    console.log('已挂载butterfly_footer_beautify')
+    parent_div_git.insertAdjacentHTML("beforeend",item_html)
+    }
+  var elist = 'null'.split(',');
+  var cpage = location.pathname;
+  var epage = 'all';
+  var flag = 0;
+
+  for (var i=0;i<elist.length;i++){
+    if (cpage.includes(elist[i])){
+      flag++;
+    }
+  }
+
+  if ((epage ==='all')&&(flag == 0)){
+    butterfly_footer_beautify_injector_config();
+  }
+  else if (epage === cpage){
+    butterfly_footer_beautify_injector_config();
+  }
+  </script><script async src="/js/runtime.js"></script><!-- hexo injector body_end end --><script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"left","width":250,"height":300},"mobile":{"show":false},"log":false});</script></body></html>
